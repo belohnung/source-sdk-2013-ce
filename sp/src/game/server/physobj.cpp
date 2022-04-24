@@ -1639,7 +1639,7 @@ void CPhysMagnet::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 	if ( HasSpawnFlags( SF_MAGNET_COAST_HACK ) )
 	{
 		// If the other isn't the jeep, we need to get rid of it
-		if ( !FClassnameIs( pOther, "prop_vehicle_jeep" ) )
+		if ( !FClassnameIs( pOther, "prop_vehicle_jeep" ) || !FClassnameIs( pOther, "prop_vehicle_jalopy" ) )
 		{
 			// If it takes damage, destroy it
 			if ( pOther->m_takedamage != DAMAGE_NO && pOther->m_takedamage != DAMAGE_EVENTS_ONLY )
