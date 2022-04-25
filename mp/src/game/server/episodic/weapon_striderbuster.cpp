@@ -270,7 +270,7 @@ void CWeaponStriderBuster::Spawn( void )
 //-----------------------------------------------------------------------------
 void CWeaponStriderBuster::Activate( void )
 {	
-	g_iszVehicle = AllocPooledString( "prop_vehicle_jalopy" );
+	g_iszVehicle = AllocPooledString( "prop_vehicle_jeep" );
 	BaseClass::Activate();
 }
 
