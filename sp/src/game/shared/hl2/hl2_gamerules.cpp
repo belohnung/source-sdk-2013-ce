@@ -148,6 +148,13 @@ ConVar	sk_plr_dmg_grenade		( "sk_plr_dmg_grenade","0", FCVAR_REPLICATED);
 ConVar	sk_npc_dmg_grenade		( "sk_npc_dmg_grenade","0", FCVAR_REPLICATED);
 ConVar	sk_max_grenade			( "sk_max_grenade","0", FCVAR_REPLICATED);
 
+ConVar	sk_plr_dmg_uranium		("sk_plr_dmg_uranium", "0", FCVAR_REPLICATED);
+ConVar	sk_npc_dmg_uranium		("sk_npc_dmg_uranium", "0", FCVAR_REPLICATED);
+ConVar	sk_plr_max_dmg_uranium	("sk_plr_max_dmg_uranium", "0", FCVAR_REPLICATED);
+ConVar	sk_npc_max_dmg_uranium	("sk_npc_max_dmg_uranium", "0", FCVAR_REPLICATED);
+
+ConVar	sk_max_uranium_round	("sk_max_uranium_round", "0", FCVAR_REPLICATED);
+
 #ifdef HL2_EPISODIC
 ConVar	sk_max_hopwire			( "sk_max_hopwire", "3", FCVAR_REPLICATED);
 ConVar	sk_max_striderbuster	( "sk_max_striderbuster", "3", FCVAR_REPLICATED);
@@ -1817,7 +1824,7 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("Gravity",			DMG_CLUB,					TRACER_NONE,			0,	0, 8, 0, 0 );
 //		def.AddAmmoType("Extinguisher",		DMG_BURN,					TRACER_NONE,			0,	0, 100, 0, 0 );
 		def.AddAmmoType("Battery",			DMG_CLUB,					TRACER_NONE,			NULL, NULL, NULL, 0, 0 );
-		def.AddAmmoType("GaussEnergy",		DMG_SHOCK,					TRACER_NONE,			"sk_jeep_gauss_damage",		"sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0 ); // hit like a 10kg weight at 400 in/s
+		def.AddAmmoType("Uranium",			DMG_SHOCK,					TRACER_NONE,			"sk_plr_dmg_uranium",		"sk_npc_dmg_uranium",		"sk_max_uranium_round", BULLET_IMPULSE(650, 8000), 0 ); // hit like a 10kg weight at 400 in/s
 		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
 		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_LINE,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		NULL,					BULLET_IMPULSE(10, 600), 0 );
 

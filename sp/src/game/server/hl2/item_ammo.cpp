@@ -416,6 +416,41 @@ public:
 LINK_ENTITY_TO_CLASS(item_box_flare_rounds, CItem_BoxFlareRounds);
 
 // ========================================================================
+//	>> Uranium
+// ========================================================================
+#define SIZE_URANIUM 20
+
+class CItem_Uranium : public CItem
+{
+public:
+	DECLARE_CLASS( CItem_Uranium, CItem );
+
+	void Spawn( void )
+	{ 
+		Precache( );
+		SetModel( "models/items/boxbuckshot.mdl");
+		BaseClass::Spawn( );
+	}
+	void Precache( void )
+	{
+		PrecacheModel ("models/items/boxbuckshot.mdl");
+	}
+	bool MyTouch( CBasePlayer *pPlayer )
+	{
+		if (ITEM_GiveAmmo( pPlayer, SIZE_URANIUM, "Uranium"))
+		{
+			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
+			{
+				UTIL_Remove(this);	
+			}
+			return true;
+		}
+		return false;
+	}
+};
+LINK_ENTITY_TO_CLASS(item_uranium, CItem_Uranium);
+
+// ========================================================================
 // RPG Round
 // ========================================================================
 class CItem_RPG_Round : public CItem
@@ -606,6 +641,7 @@ enum
 	AMMOCRATE_CROSSBOW,
 	AMMOCRATE_AR2_ALTFIRE,
 	AMMOCRATE_SMG_ALTFIRE,
+	AMMOCRATE_URANIUM,
 	NUM_AMMO_CRATE_TYPES,
 };
 
@@ -693,6 +729,7 @@ const char *CItem_AmmoCrate::m_lpzModelNames[NUM_AMMO_CRATE_TYPES] =
 	//FIXME: This model is incorrect!
 	"models/items/ammocrate_ar2.mdl",		// Combine Ball 
 	"models/items/ammocrate_smg2.mdl",	    // smg grenade
+	"models/items/ammocrate_buckshot.mdl",	// Uranium
 };
 
 // Ammo type names
@@ -708,6 +745,7 @@ const char *CItem_AmmoCrate::m_lpzAmmoNames[NUM_AMMO_CRATE_TYPES] =
 	"XBowBolt",
 	"AR2AltFire",
 	"SMG1_Grenade",
+	"Uranium"
 };
 
 // Ammo amount given per +use
@@ -723,6 +761,7 @@ int CItem_AmmoCrate::m_nAmmoAmounts[NUM_AMMO_CRATE_TYPES] =
 	50,		// Crossbow
 	3,		// AR2 alt-fire
 	5,
+	20		// Uranium
 };
 
 const char *CItem_AmmoCrate::m_pGiveWeapon[NUM_AMMO_CRATE_TYPES] =
@@ -737,6 +776,7 @@ const char *CItem_AmmoCrate::m_pGiveWeapon[NUM_AMMO_CRATE_TYPES] =
 	NULL,		// Crossbow
 	NULL,		// AR2 alt-fire
 	NULL,		// SMG alt-fire
+	NULL,		// Uranium
 };
 
 #define	AMMO_CRATE_CLOSE_DELAY	1.5f

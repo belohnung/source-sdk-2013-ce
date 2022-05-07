@@ -50,6 +50,8 @@ $Project "Server"
 
 		$Folder	"SDK2013CE DLL"
 		{
+			$File 	"sdk2013ce\weapon_gauss.cpp"
+			$File 	"sdk2013ce\weapon_gauss.h"
 		}
 
 		$Folder	"HL2 DLL"
