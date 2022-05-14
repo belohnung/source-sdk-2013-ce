@@ -173,6 +173,10 @@ BEGIN_SIMPLE_DATADESC( HintNodeData )
 	DEFINE_KEYFIELD( fIgnoreFacing,		FIELD_INTEGER,	"IgnoreFacing" ),
 	DEFINE_KEYFIELD( minState,			FIELD_INTEGER,	"MinimumState" ),
 	DEFINE_KEYFIELD( maxState,			FIELD_INTEGER,	"MaximumState" ),
+#ifdef NEW_RESPONSE_SYSTEM
+	DEFINE_KEYFIELD( nRadius,			FIELD_INTEGER,  "radius" ),
+	DEFINE_KEYFIELD( flWeight,			FIELD_FLOAT,	"hintweight" ),
+#endif // NEW_RESPONSE_SYSTEM
 
 END_DATADESC()
 
@@ -205,6 +209,17 @@ int CNodeEnt::Spawn( const char *pMapData )
 		m_NodeData.minState = NPC_STATE_IDLE;
 	if ( m_NodeData.maxState == NPC_STATE_NONE )
 		m_NodeData.maxState = NPC_STATE_COMBAT;
+#ifdef NEW_RESPONSE_SYSTEM
+	if (m_NodeData.flWeight == 0.0f)
+	{
+		m_NodeData.flWeight = 1.0f;
+	}
+	else if (m_NodeData.flWeight != 1.0f)
+	{
+		// Invert the weight so that it could be used as a direct multiplier for distances, etc.
+		m_NodeData.flWeightInverse = 1.0f / m_NodeData.flWeight;
+	}
+#endif // NEW_RESPONSE_SYSTEM
 	// ---------------------------------------------------------------------------------
 	//  If just a hint node (not used for navigation) just create a hint and bail
 	// ---------------------------------------------------------------------------------

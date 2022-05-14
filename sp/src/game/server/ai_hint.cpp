@@ -35,6 +35,10 @@ CHintCriteria::CHintCriteria( void )
 	m_strGroup		= NULL_STRING;
 	m_iFlags		= 0;
 	m_HintTypes.Purge();
+#ifdef NEW_RESPONSE_SYSTEM
+	m_pfnFilter = NULL;
+	m_pFilterContext = NULL;
+#endif // NEW_RESPONSE_SYSTEM
 }
 
 //-----------------------------------------------------------------------------
@@ -1192,6 +1196,30 @@ bool CAI_Hint::HintMatchesCriteria( CAI_BaseNPC *pNPC, const CHintCriteria &hint
 		return false;
 	}
 
+#ifdef NEW_RESPONSE_SYSTEM
+	// Test against generic filter
+	// (From Alien Swarm SDK)
+	if ( !hintCriteria.PassesFilter( this ) )
+	{
+		REPORTFAILURE( "Failed filter test" );
+		return false;
+	}
+
+	// (From Alien Swarm SDK)
+	int nRadius = GetRadius();
+	if ( nRadius != 0 )
+	{
+		// Calculate our distance
+		float distance = (GetAbsOrigin() - position).LengthSqr();
+
+		if ( distance > nRadius * nRadius )
+		{
+			REPORTFAILURE( "NPC is not within the node's radius." );
+			return false;
+		}
+	}
+#endif // NEW_RESPONSE_SYSTEM
+
 	if ( hintCriteria.HasFlag(bits_HINT_NPC_IN_NODE_FOV) )
 	{
 		if ( pNPC == NULL )
@@ -1311,10 +1339,18 @@ bool CAI_Hint::HintMatchesCriteria( CAI_BaseNPC *pNPC, const CHintCriteria &hint
 		{
 			trace_t tr;
 			// Can my bounding box fit there?
+#ifdef NEW_RESPONSE_SYSTEM
+			Vector vStep( 0, 0, pNPC->StepHeight() );
+			AI_TraceHull ( GetAbsOrigin() + vStep, GetAbsOrigin(), pNPC->WorldAlignMins(), pNPC->WorldAlignMaxs() - vStep, 
+				MASK_SOLID, pNPC, COLLISION_GROUP_NONE, &tr );
+
+			if ( tr.fraction < 0.95 )
+#else
 			AI_TraceHull ( GetAbsOrigin(), GetAbsOrigin(), pNPC->WorldAlignMins(), pNPC->WorldAlignMaxs(), 
 				MASK_SOLID, pNPC, COLLISION_GROUP_NONE, &tr );
 
 			if ( tr.fraction != 1.0 )
+#endif // NEW_RESPONSE_SYSTEM
 			{
 				REPORTFAILURE( "Node isn't clear." );
 				return false;
@@ -1329,6 +1365,15 @@ bool CAI_Hint::HintMatchesCriteria( CAI_BaseNPC *pNPC, const CHintCriteria &hint
 
 		// Calculate our distance
 		float distance = (GetAbsOrigin() - position).Length();
+
+#ifdef NEW_RESPONSE_SYSTEM
+		// Divide by hint weight
+		float flWeight = GetHintWeight();
+		if ( flWeight != 1.0f )
+		{
+			distance *= GetHintWeightInverse();
+		}
+#endif
 
 		// Must be closer than the current best
 		if ( distance > *flNearestDistance )
@@ -1500,6 +1545,14 @@ void CAI_Hint::OnRestore()
 
 	m_NodeData.nNodeID = g_pAINetworkManager->GetEditOps()->GetNodeIdFromWCId( m_NodeData.nWCNodeID );
 	FixupTargetNode();
+
+#ifdef NEW_RESPONSE_SYSTEM
+	if (m_NodeData.flWeight != 0.0f && m_NodeData.flWeight != 1.0f)
+	{
+		// Re-invert the weight
+		m_NodeData.flWeightInverse = 1.0f / m_NodeData.flWeight;
+	}
+#endif // NEW_RESPONSE_SYSTEM
 
 	CAI_Node *pNode = GetNode();
 	
@@ -1676,6 +1729,11 @@ void CC_ai_drop_hint( const CCommand &args )
 	nodeData.fIgnoreFacing = HIF_DEFAULT;
 	nodeData.minState = NPC_STATE_IDLE;
 	nodeData.maxState = NPC_STATE_COMBAT;
+#ifdef NEW_RESPONSE_SYSTEM
+	nodeData.nRadius = 0;	// From Alien Swarm SDK
+	nodeData.flWeight = 1.0f;
+	nodeData.flWeightInverse = 1.0f;
+#endif // NEW_RESPONSE_SYSTEM
 	CAI_Hint *pHint = CAI_HintManager::CreateHint( &nodeData, NULL );
 	if ( pHint )
 	{

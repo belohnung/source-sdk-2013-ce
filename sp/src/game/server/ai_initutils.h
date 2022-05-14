@@ -42,6 +42,11 @@ struct HintNodeData
 	HintIgnoreFacing_t fIgnoreFacing;
 	NPC_STATE	minState;
 	NPC_STATE	maxState;
+#ifdef NEW_RESPONSE_SYSTEM
+	int			nRadius;
+	float		flWeight;
+	float		flWeightInverse;	// Not saved
+#endif
 
 	int			nWCNodeID;			// Node ID assigned by worldcraft (not same as engine!)
 

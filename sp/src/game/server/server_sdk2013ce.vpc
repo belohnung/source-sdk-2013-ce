@@ -16,6 +16,7 @@ $Configuration
 	{
 		$AdditionalIncludeDirectories	"$BASE;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;$SRCDIR\game\shared\sdk2013ce;.\hl2;.\episodic;.\sdk2013ce"
 		$PreprocessorDefinitions		"$BASE;HL2_DLL;HL2_EPISODIC;SDK2013CE;USES_SAVERESTORE"
+		$PreprocessorDefinitions		"$BASE;NEW_RESPONSE_SYSTEM"		[$NEW_RESPONSE_SYSTEM]
 	}
 }
 
@@ -47,6 +48,9 @@ $Project "Server"
 		$File	"vehicle_choreo_generic.cpp"
 		$File	"$SRCDIR\game\shared\vehicle_choreo_generic_shared.h"
 		$File	"$SRCDIR\game\shared\weapon_parse_default.cpp"
+		$File	"ai_expresserfollowup.cpp" [$NEW_RESPONSE_SYSTEM]
+		$File	"ai_speechqueue.cpp" [$NEW_RESPONSE_SYSTEM]
+		$File	"ai_speechqueue.h" [$NEW_RESPONSE_SYSTEM]
 
 		$Folder	"SDK2013CE DLL"
 		{
@@ -303,5 +307,10 @@ $Project "Server"
 				$File	"hl2\weapon_flaregun.h"
 			}
 		}
+	}
+	
+	$Folder	"Link Libraries"
+	{
+		$Lib	"responserules" [$NEW_RESPONSE_SYSTEM]
 	}
 }

@@ -9,12 +9,19 @@
 
 #include "simtimer.h"
 #include "ai_behavior.h"
+#ifdef NEW_RESPONSE_SYSTEM
+#include "ai_speechconcept.h"
+#endif // NEW_RESPONSE_SYSTEM
 
 #if defined( _WIN32 )
 #pragma once
 #endif
 
-typedef const char *AIConcept_t;
+#ifdef NEW_RESPONSE_SYSTEM
+typedef CAI_Concept AIConcept_t;
+#else
+typedef const char* AIConcept_t;
+#endif // NEW_RESPONSE_SYSTEM
 
 // Speak concepts
 #define TLK_LEAD_START				"TLK_LEAD_START"

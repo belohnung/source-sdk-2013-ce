@@ -20,14 +20,20 @@
 #include "ServerNetworkProperty.h"
 #include "shareddefs.h"
 #include "engine/ivmodelinfo.h"
+#ifdef NEW_RESPONSE_SYSTEM
+#include "AI_Criteria.h"
+#include "AI_ResponseSystem.h"
+#endif // !NEW_RESPONSE_SYSTEM
 
 class CDamageModifier;
 class CDmgAccumulator;
 
 struct CSoundParameters;
 
+#ifndef NEW_RESPONSE_SYSTEM
 class AI_CriteriaSet;
 class IResponseSystem;
+#endif // !NEW_RESPONSE_SYSTEM
 class IEntitySaveUtils;
 class CRecipientFilter;
 class CStudioHdr;
@@ -35,6 +41,11 @@ class CStudioHdr;
 // Matching the high level concept is significantly better than other criteria
 // FIXME:  Could do this in the script file by making it required and bumping up weighting there instead...
 #define CONCEPT_WEIGHT 5.0f
+
+#ifdef NEW_RESPONSE_SYSTEM
+// Relax the namespace standard a bit so that less code has to be changed
+#define IResponseSystem ResponseRules::IResponseSystem
+#endif // NEW_RESPONSE_SYSTEM
 
 typedef CHandle<CBaseEntity> EHANDLE;
 
@@ -848,6 +859,7 @@ protected:
 	int FindContextByName( const char *name ) const;
 public:
 	void	AddContext( const char *nameandvalue );
+	void	AddContext( const char* name, const char* value, float duration = 0.0f );
 
 protected:
 	CUtlVector< ResponseContext_t > m_ResponseContexts;
@@ -1127,6 +1139,12 @@ public:
 
 #endif
 	virtual void	ModifyOrAppendCriteria( AI_CriteriaSet& set );
+#ifdef NEW_RESPONSE_SYSTEM
+	// this computes criteria that depend on the other criteria having been set. 
+	// needs to be done in a second pass because we may have multiple overrids for
+	// a context before it all settles out.
+	virtual void	ModifyOrAppendDerivedCriteria( AI_CriteriaSet& set ) {};
+#endif // NEW_RESPONSE_SYSTEM
 	void			AppendContextToCriteria( AI_CriteriaSet& set, const char *prefix = "" );
 	void			DumpResponseCriteria( void );
 	

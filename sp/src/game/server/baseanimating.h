@@ -340,6 +340,9 @@ private:
 	void InputSetLightingOrigin( inputdata_t &inputdata );
 	void InputSetModelScale( inputdata_t &inputdata );
 
+#ifdef SDK2013CE
+public:
+#endif // SDK2013CE
 	bool CanSkipAnimation( void );
 
 public:

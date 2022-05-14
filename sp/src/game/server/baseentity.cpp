@@ -62,6 +62,9 @@
 #include "env_debughistory.h"
 #include "tier1/utlstring.h"
 #include "utlhashtable.h"
+#ifdef NEW_RESPONSE_SYSTEM
+#include "ai_speech.h"
+#endif // NEW_RESPONSE_SYSTEM
 
 #if defined( TF_DLL )
 #include "tf_gamerules.h"
@@ -6518,30 +6521,71 @@ void CBaseEntity::AddContext( const char *contextName )
 {
 	char key[ 128 ];
 	char value[ 128 ];
-	float duration;
+	float duration = 0.0f;
 
 	const char *p = contextName;
 	while ( p )
 	{
 		duration = 0.0f;
+#ifdef SDK2013CE
+		p = SplitContext( p, key, sizeof( key ), value, sizeof( value ), &duration, contextName );
+#else
 		p = SplitContext( p, key, sizeof( key ), value, sizeof( value ), &duration );
+#endif // SDK2013CE
 		if ( duration )
 		{
 			duration += gpGlobals->curtime;
 		}
 
-		int iIndex = FindContextByName( key );
-		if ( iIndex != -1 )
-		{
-			// Set the existing context to the new value
-			m_ResponseContexts[iIndex].m_iszValue = AllocPooledString( value );
-			m_ResponseContexts[iIndex].m_fExpirationTime = duration;
-			continue;
-		}
+		AddContext( key, value, duration );
+	}
+}
 
+void CBaseEntity::AddContext(const char* name, const char* value, float duration)
+{
+	int iIndex = FindContextByName( name );
+	if ( iIndex != -1 )
+	{
+		// Set the existing context to the new value
+
+#ifdef NEW_RESPONSE_SYSTEM
+		char buf[64];
+		if ( RR::CApplyContextOperator::FindOperator( value )->Apply( 
+			m_ResponseContexts[iIndex].m_iszValue.ToCStr(), value, buf, sizeof(buf) ) )
+		{
+			m_ResponseContexts[iIndex].m_iszValue = AllocPooledString( buf );
+		}
+		else
+		{
+			Warning( "RR: could not apply operator %s to prior value %s\n", 
+				value, m_ResponseContexts[iIndex].m_iszValue.ToCStr() );
+			m_ResponseContexts[iIndex].m_iszValue = AllocPooledString( value );
+		}
+#else
+		m_ResponseContexts[iIndex].m_iszValue = AllocPooledString( value );
+#endif // NEW_RESPONSE_SYSTEM
+		m_ResponseContexts[iIndex].m_fExpirationTime = duration;
+	}
+	else
+	{
 		ResponseContext_t newContext;
-		newContext.m_iszName = AllocPooledString( key );
+		newContext.m_iszName = AllocPooledString( name );
+
+#ifdef NEW_RESPONSE_SYSTEM
+		char buf[64];
+		if ( RR::CApplyContextOperator::FindOperator( value )->Apply( 
+			NULL, value, buf, sizeof(buf) ) )
+		{
+			newContext.m_iszValue = AllocPooledString( buf );
+		}
+		else
+		{
+			newContext.m_iszValue = AllocPooledString( value );
+		}
+#else
 		newContext.m_iszValue = AllocPooledString( value );
+#endif // NEW_RESPONSE_SYSTEM
+
 		newContext.m_fExpirationTime = duration;
 
 		m_ResponseContexts.AddToTail( newContext );
@@ -6637,6 +6681,11 @@ void CBaseEntity::InputAddOutput( inputdata_t &inputdata )
 //-----------------------------------------------------------------------------
 void CBaseEntity::DispatchResponse( const char *conceptName )
 {
+#ifdef NEW_RESPONSE_SYSTEM
+	#undef IResponseSystem
+	using namespace ResponseRules;
+#endif // NEW_RESPONSE_SYSTEM
+
 	IResponseSystem *rs = GetResponseSystem();
 	if ( !rs )
 		return;
@@ -6663,6 +6712,49 @@ void CBaseEntity::DispatchResponse( const char *conceptName )
 	// Handle the response here...
 	char response[ 256 ];
 	result.GetResponse( response, sizeof( response ) );
+#ifdef NEW_RESPONSE_SYSTEM
+	switch (result.GetType())
+	{
+	case ResponseRules::RESPONSE_SPEAK:
+	{
+		EmitSound(response);
+	}
+	break;
+	case ResponseRules::RESPONSE_SENTENCE:
+	{
+		int sentenceIndex = SENTENCEG_Lookup(response);
+		if (sentenceIndex == -1)
+		{
+			// sentence not found
+			break;
+		}
+
+		// FIXME:  Get pitch from npc?
+		CPASAttenuationFilter filter(this);
+		CBaseEntity::EmitSentenceByIndex(filter, entindex(), CHAN_VOICE, sentenceIndex, 1, result.GetSoundLevel(), 0, PITCH_NORM);
+	}
+	break;
+	case ResponseRules::RESPONSE_SCENE:
+	{
+		// Try to fire scene w/o an actor
+		InstancedScriptedScene(NULL, response);
+	}
+	break;
+	case ResponseRules::RESPONSE_PRINT:
+	{
+
+	}
+	break;
+	case ResponseRules::RESPONSE_ENTITYIO:
+	{
+		CAI_Expresser::FireEntIOFromResponse(response, this);
+		break;
+	}
+	default:
+		// Don't know how to handle .vcds!!!
+		break;
+	}
+#endif // NEW_RESPONSE_SYSTEM
 	switch ( result.GetType() )
 	{
 	case RESPONSE_SPEAK:

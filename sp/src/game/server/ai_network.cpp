@@ -555,8 +555,13 @@ CAI_Node *CAI_Network::AddNode( const Vector &origin, float yaw )
 
 CAI_Link *CAI_Network::CreateLink( int srcID, int destID, CAI_DynamicLink *pDynamicLink )
 {
+#ifdef NEW_RESPONSE_SYSTEM
+	CAI_Node *pSrcNode = GetNode( srcID );
+	CAI_Node *pDestNode = GetNode( destID );
+#else
 	CAI_Node *pSrcNode = g_pBigAINet->GetNode( srcID );
 	CAI_Node *pDestNode = g_pBigAINet->GetNode( destID );
+#endif // NEW_RESPONSE_SYSTEM
 
 	Assert( pSrcNode && pDestNode && pSrcNode != pDestNode );
 

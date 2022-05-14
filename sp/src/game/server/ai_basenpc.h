@@ -64,7 +64,9 @@ class CBaseGrenade;
 class CBaseDoor;
 class CBasePropDoor;
 struct AI_Waypoint_t;
+#ifndef NEW_RESPONSE_SYSTEM
 class AI_Response;
+#endif // NEW_RESPONSE_SYSTEM
 class CBaseFilter;
 
 typedef CBitVec<MAX_CONDITIONS> CAI_ScheduleBits;

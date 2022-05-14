@@ -15,6 +15,9 @@
 // rel/tf_beta branch:
 //$Conditional TF_BETA	"1"
 
+// Toggles the new Response System library based on the Alien Swarm SDK.
+$Conditional NEW_RESPONSE_SYSTEM	"1"
+
 $Configuration "Debug"
 {
 	$Compiler

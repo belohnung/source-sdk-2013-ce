@@ -704,7 +704,11 @@ void CAI_BaseActor::UpdateLatchedValues( )
 		// set head latch
 		m_fLatchedPositions |= HUMANOID_LATCHED_HEAD;
 
+#ifdef NEW_RESPONSE_SYSTEM
+		if ( CanSkipAnimation() || !GetAttachment( "eyes", m_latchedEyeOrigin, &m_latchedHeadDirection ))
+#else
 		if (!HasCondition( COND_IN_PVS ) || !GetAttachment( "eyes", m_latchedEyeOrigin, &m_latchedHeadDirection ))
+#endif // NEW_RESPONSE_SYSTEM
 		{
 			m_latchedEyeOrigin = BaseClass::EyePosition( );
 			AngleVectors( GetLocalAngles(), &m_latchedHeadDirection );
@@ -1495,7 +1499,11 @@ void CAI_BaseActor::MaintainLookTargets( float flInterval )
 	}
 
 	// don't bother with any of the rest if the player can't see you
+#ifdef NEW_RESPONSE_SYSTEM
+	if ( CanSkipAnimation() )
+#else
 	if (!HasCondition( COND_IN_PVS ))
+#endif // NEW_RESPONSE_SYSTEM
 	{
 		return;
 	}
@@ -1902,7 +1910,11 @@ bool CAI_BaseActor::UseSemaphore( void )
 
 CAI_Expresser *CAI_BaseActor::CreateExpresser()
 {
+#ifdef NEW_RESPONSE_SYSTEM
+	m_pExpresser = new CAI_ExpresserWithFollowup(this);
+#else
 	m_pExpresser = new CAI_Expresser(this);
+#endif // NEW_RESPONSE_SYSTEM
 	return m_pExpresser;
 }
 

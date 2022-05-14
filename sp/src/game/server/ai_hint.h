@@ -112,9 +112,20 @@ enum Hint_e
 
 	// CS port hints
 	HINT_CSTRIKE_HOSTAGE_ESCAPE = 1100,
+
+#ifdef NEW_RESPONSE_SYSTEM
+	// Mapbase hints
+	// (these start at a high number to avoid potential conflicts with mod hints)
+
+	HINT_TACTICAL_COVER_CUSTOM = 10000,	// Cover node with a custom hint activity (NPCs can take cover and reload here while playing said activity)
+#endif
 };
 const char *GetHintTypeDescription( Hint_e iHintType );
 const char *GetHintTypeDescription( CAI_Hint *pHint );
+
+#ifdef NEW_RESPONSE_SYSTEM
+typedef bool (*HintSearchFilterFunc_t)( void *pContext, CAI_Hint *pCandidate );
+#endif // NEW_RESPONSE_SYSTEM
 
 //-----------------------------------------------------------------------------
 // CHintCriteria
@@ -133,6 +144,11 @@ public:
 
 	void		SetGroup( string_t group );
 	string_t	GetGroup( void )	const	{ return m_strGroup;	}
+
+#ifdef NEW_RESPONSE_SYSTEM
+	void		SetFilterFunc( HintSearchFilterFunc_t pfnFilter, void *pContext = NULL )	{ m_pfnFilter = pfnFilter; m_pFilterContext = pContext; }
+	bool		PassesFilter( CAI_Hint *pCandidate ) const { return (m_pfnFilter) ? (*m_pfnFilter)(m_pFilterContext, pCandidate) : true; }
+#endif // NEW_RESPONSE_SYSTEM
 
 	int			GetFirstHintType( void ) const	{ return m_iFirstHintType; }
 	int			GetLastHintType( void ) const	{ return m_iLastHintType; }
@@ -176,6 +192,11 @@ private:
 	
 	zoneList_t	m_zoneInclude;
 	zoneList_t	m_zoneExclude;
+
+#ifdef NEW_RESPONSE_SYSTEM
+	HintSearchFilterFunc_t m_pfnFilter;
+	void *		m_pFilterContext;
+#endif // NEW_RESPONSE_SYSTEM
 };
 
 class CAI_Node;
@@ -301,6 +322,13 @@ public:
 
 	int					GetNodeId()	{ return m_NodeData.nNodeID; }
 	int					GetWCId()	{ return m_NodeData.nWCNodeID; }
+
+#ifdef NEW_RESPONSE_SYSTEM
+	int					GetRadius() const { return m_NodeData.nRadius; }
+
+	float				GetHintWeight() const { return m_NodeData.flWeight; }
+	float				GetHintWeightInverse() const { return m_NodeData.flWeightInverse; }		// Used to multiply distances
+#endif // NEW_RESPONSE_SYSTEM
 
 	bool				HintMatchesCriteria( CAI_BaseNPC *pNPC, const CHintCriteria &hintCriteria, const Vector &position, float *flNearestDistance, bool bIgnoreLock = false, bool bIgnoreHintType = false );
 	bool				IsInNodeFOV( CBaseEntity *pOther );

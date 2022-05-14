@@ -137,3 +137,8 @@ $Project "togl"
 {
 	"togl\togl.vpc" [$POSIX]
 }
+
+$Project "responserules"
+{
+	"responserules\runtime\response_rules.vpc" [($WIN32||$X360||$POSIX) && $NEW_RESPONSE_SYSTEM]
+}

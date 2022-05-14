@@ -22,6 +22,7 @@ $Group "game"
 	"server"
 	"tier1"
 	"vgui_controls"
+	"responserules"
 }
 
 $Group "shaders"
@@ -56,6 +57,7 @@ $Group "everything"
 	"vvis_dll"
 	"vvis_launcher"
 	"togl"
+	"responserules"
 }
 
 $Group "dedicated"
