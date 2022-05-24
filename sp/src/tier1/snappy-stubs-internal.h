@@ -128,6 +128,10 @@ class LogMessage {
   }
 };
 
+#ifdef _WIN32
+#pragma warning(disable:4722) // warning C4722: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+#endif //_WIN32
+
 // Asserts, both versions activated in debug mode only,
 // and ones that are always active.
 
