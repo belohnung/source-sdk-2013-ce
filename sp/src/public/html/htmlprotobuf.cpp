@@ -17,7 +17,7 @@
 #endif
 
 #include "tier0/memdbgoff.h"
-#include "protobuf-2.3.0/src/google/protobuf/message_lite.h"
+#include "protobuf-3.20.1/src/google/protobuf/message_lite.h"
 #include "tier0/memdbgon.h"
 
 #ifdef _WIN64
