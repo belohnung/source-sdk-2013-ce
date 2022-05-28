@@ -176,10 +176,7 @@ typedef struct
 	char	*filename;
 } texlight_t;
 
-#define	MAX_TEXLIGHTS	128
-
-texlight_t	texlights[MAX_TEXLIGHTS];
-int			num_texlights;
+CUtlVector<texlight_t> texlights(0, 128);
 
 /*
 ============
@@ -239,8 +236,6 @@ void ReadLightFile (char *filename)
 		{
 			char szTexlight[256];
 			Vector value;
-			if ( num_texlights == MAX_TEXLIGHTS )
-				Error ("Too many texlights, max = %d", MAX_TEXLIGHTS);
 
 			int argCnt = sscanf (scan, "%s ",szTexlight );
 
@@ -254,7 +249,7 @@ void ReadLightFile (char *filename)
 			LightForString( scan + strlen( szTexlight ) + 1, value );
 
 			int j = 0;
-			for( j; j < num_texlights; j ++ )
+			for( j; j < texlights.Count(); j ++ )
 			{
 				if ( strcmp( texlights[j].name, szTexlight ) == 0 )
 				{
@@ -278,12 +273,14 @@ void ReadLightFile (char *filename)
 					break;
 				}
 			}
+
+			if (j >= texlights.Count())
+				j = texlights.AddToTail();
+
 			strcpy( texlights[j].name, szTexlight );
 			VectorCopy( value, texlights[j].value );
 			texlights[j].filename = filename;
 			file_texlights ++;
-			
-			num_texlights = max( num_texlights, j + 1 );
 		}
 	}
 	qprintf ( "[%i texlights parsed from '%s']\n\n", file_texlights, filename);
@@ -298,8 +295,6 @@ LightForTexture
 */
 void LightForTexture( const char *name, Vector& result )
 {
-	int		i;
-
 	result[ 0 ] = result[ 1 ] = result[ 2 ] = 0;
 
 	char baseFilename[ MAX_PATH ];
@@ -339,7 +334,7 @@ void LightForTexture( const char *name, Vector& result )
 		}
 	}
 
-	for (i=0 ; i<num_texlights ; i++)
+	for (int i = 0 ; i < texlights.Count(); i++)
 	{
 		if (!Q_strcasecmp (name, texlights[i].name))
 		{
