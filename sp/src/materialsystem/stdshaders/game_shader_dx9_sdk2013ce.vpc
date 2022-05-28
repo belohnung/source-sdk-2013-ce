@@ -10,4 +10,13 @@ $Include "$SRCDIR\materialsystem\stdshaders\game_shader_dx9_base.vpc"
 
 $Project "Shaders"
 {
+	$Folder	"Source Files"
+	{
+		$File	"ssao.cpp"
+		$File	"ssao_combine.cpp"
+		$File	"gaussian_blur_3x3.cpp"
+	}
+	
+	$Shaders	"sdk2013ce_dx9_20b.txt"
+	$Shaders	"sdk2013ce_dx9_30.txt"
 }

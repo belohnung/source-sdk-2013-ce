@@ -1,0 +1,17 @@
+//
+// Standard shaders collection
+//
+//  These shaders are compiled as the following shader models:
+//	    _ps20.vcs
+//	    _ps20b.vcs
+//	    _vs20.vcs
+//
+
+ssao_ps30.fxc
+ssao_vs30.fxc
+
+ssao_combine_ps30.fxc
+ssao_combine_vs30.fxc
+
+gauss_blur_3x3_ps30.fxc
+gauss_blur_3x3_vs30.fxc
