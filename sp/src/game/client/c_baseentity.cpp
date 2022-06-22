@@ -5859,7 +5859,7 @@ void C_BaseEntity::ResetLatched()
 
 static float AdjustInterpolationAmount( C_BaseEntity *pEntity, float baseInterpolation )
 {
-	if ( cl_interp_npcs.GetFloat() > 0 )
+	if ( cl_interp_npcs.GetFloat() > 0 && g_pGameRules->IsMultiplayer() )
 	{
 		const float minNPCInterpolationTime = cl_interp_npcs.GetFloat();
 		const float minNPCInterpolation = TICK_INTERVAL * ( TIME_TO_TICKS( minNPCInterpolationTime ) + 1 );

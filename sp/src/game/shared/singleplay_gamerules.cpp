@@ -5,17 +5,37 @@
 //=============================================================================//
 
 #include "cbase.h"
+#include "cdll_int.h"
 #include "singleplay_gamerules.h"
+#include "fmtstr.h"
+#include "filesystem.h"
 
 #ifdef CLIENT_DLL
 
 #else
 
+	#include "eventqueue.h"
 	#include "player.h"
 	#include "basecombatweapon.h"
 	#include "gamerules.h"
 	#include "game.h"
 	#include "items.h"
+	#include "entitylist.h"
+	#include "in_buttons.h" 
+	#include <ctype.h>
+	#include "voice_gamemgr.h"
+	#include "iscorer.h"
+	#include "hltvdirector.h"
+	#include "AI_Criteria.h"
+	#include "sceneentity.h"
+	#include "basemultiplayerplayer.h"
+	#include "team.h"
+	#include "usermessages.h"
+	#include "tier0/icommandline.h"
+
+#ifdef NEXT_BOT
+	#include "NextBotManager.h"
+#endif
 
 #endif
 
@@ -23,12 +43,11 @@
 #include "tier0/memdbgon.h"
 
 
-
 //=========================================================
 //=========================================================
 bool CSingleplayRules::IsMultiplayer( void )
 {
-	return false;
+	return gpGlobals->maxClients > 1;
 }
 
 // Needed during the conversion, but once DMG_* types have been fixed, this isn't used anymore.
@@ -135,11 +154,9 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	return ( ( iDmgType & ( DMG_POISON | DMG_ACID ) ) != 0 );
 }
 
-#ifdef CLIENT_DLL
+#ifndef CLIENT_DLL
 
-#else
-
-	extern CGameRules	*g_pGameRules;
+	extern CGameRules* g_pGameRules;
 	extern bool		g_fGameOver;
 
 	//=========================================================
@@ -147,6 +164,28 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	CSingleplayRules::CSingleplayRules( void )
 	{
 		RefreshSkillData( true );
+
+		char mapcfg[256];
+		Q_snprintf(mapcfg, sizeof(mapcfg), "cfg/%s.cfg", STRING(gpGlobals->mapname));
+
+		Q_FixSlashes(mapcfg);
+		Q_strlower(mapcfg);
+
+		if (mapcfg)
+		{
+			char szCommandMap[256];
+
+			Log("Executing map config file %s\n", mapcfg);
+			Q_snprintf(szCommandMap, sizeof(szCommandMap), "exec %s\n", mapcfg);
+			engine->ServerCommand(szCommandMap);
+		}
+
+		char mapname[256];
+#if !defined( CLIENT_DLL )
+		Q_snprintf(mapname, sizeof(mapname), "maps/%s", STRING(gpGlobals->mapname));
+#else
+		Q_strncpy(mapname, engine->GetLevelName(), sizeof(mapname));
+#endif
 	}
 
 	//=========================================================
@@ -167,7 +206,7 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	//=========================================================
 	bool CSingleplayRules::IsCoOp( void )
 	{
-		return false;
+		return gpGlobals->maxClients > 1;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -267,6 +306,7 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	//=========================================================
 	bool CSingleplayRules::ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen )
 	{
+		GetVoiceGameMgr()->ClientConnected( pEntity );
 		return true;
 	}
 
@@ -348,6 +388,12 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	//=========================================================
 	void CSingleplayRules::PlayerKilled( CBasePlayer *pVictim, const CTakeDamageInfo &info )
 	{
+		DeathNotice( pVictim, info );
+	}
+
+	void CSingleplayRules::NPCKilled(CBaseEntity* pVictim, const CTakeDamageInfo& info)
+	{
+		DeathNoticeNPC( pVictim, info );
 	}
 
 	//=========================================================
@@ -355,6 +401,235 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	//=========================================================
 	void CSingleplayRules::DeathNotice( CBasePlayer *pVictim, const CTakeDamageInfo &info )
 	{
+				// Work out what killed the player, and send a message to all clients about it
+		const char* killer_weapon_name = "world";		// by default, the player is killed by the world
+		int killer_ID = 0;
+
+		// Find the killer & the scorer
+		CBaseEntity* pInflictor = info.GetInflictor();
+		CBaseEntity* pKiller = info.GetAttacker();
+		if (pKiller->IsPlayer())
+		{
+			CBasePlayer* pScorer = GetDeathScorer(pKiller, pInflictor, pVictim);
+
+			// Custom damage type?
+			if (info.GetDamageCustom())
+			{
+				killer_weapon_name = GetDamageCustomString(info);
+				if (pScorer)
+				{
+					killer_ID = pScorer->GetUserID();
+				}
+			}
+			else
+			{
+				// Is the killer a client?
+				if (pScorer)
+				{
+					killer_ID = pScorer->GetUserID();
+
+					if (pInflictor)
+					{
+						if (pInflictor == pScorer)
+						{
+							// If the inflictor is the killer,  then it must be their current weapon doing the damage
+							if (pScorer->GetActiveWeapon())
+							{
+#ifdef HL1MP_DLL
+								killer_weapon_name = pScorer->GetActiveWeapon()->GetClassname();
+#else
+								killer_weapon_name = pScorer->GetActiveWeapon()->GetDeathNoticeName();
+#endif
+							}
+						}
+						else
+						{
+							killer_weapon_name = STRING(pInflictor->m_iClassname);  // it's just that easy
+						}
+					}
+				}
+				else
+				{
+					killer_weapon_name = STRING(pInflictor->m_iClassname);
+				}
+
+				// strip the NPC_* or weapon_* from the inflictor's classname
+				if (strncmp(killer_weapon_name, "weapon_", 7) == 0)
+				{
+					killer_weapon_name += 7;
+				}
+				else if (strncmp(killer_weapon_name, "npc_", 4) == 0)
+				{
+					killer_weapon_name += 4;
+				}
+				else if (strncmp(killer_weapon_name, "func_", 5) == 0)
+				{
+					killer_weapon_name += 5;
+				}
+			}
+
+			IGameEvent* event = gameeventmanager->CreateEvent("player_death");
+			if (event)
+			{
+				event->SetInt("userid", pVictim->GetUserID());
+				event->SetInt("attacker", killer_ID);
+				event->SetInt("customkill", info.GetDamageCustom());
+				event->SetInt("priority", 7);	// HLTV event priority, not transmitted
+#ifdef HL1MP_DLL
+				event->SetString("weapon", killer_weapon_name);
+#endif			
+				gameeventmanager->FireEvent(event);
+			}
+		}
+		else if (pKiller->IsNPC())
+		{
+			const char* killer_name = GetNPCName(pKiller);
+
+			IGameEvent* event = gameeventmanager->CreateEvent("player_death_npc");
+			if (event)
+			{
+				event->SetInt("userid", pVictim->GetUserID());
+				event->SetString("attacker", killer_name);
+				event->SetInt("customkill", info.GetDamageCustom());
+				event->SetInt("priority", 7);	// HLTV event priority, not transmitted
+#ifdef HL1MP_DLL
+				event->SetString("weapon", killer_weapon_name);
+#endif			
+				gameeventmanager->FireEvent(event);
+			}
+		}
+	}
+
+	void CSingleplayRules::DeathNoticeNPC(CBaseEntity* pVictim, const CTakeDamageInfo& info)
+	{
+		// Work out what killed the player, and send a message to all clients about it
+		const char* killer_weapon_name = "world";		// by default, the player is killed by the world
+		int killer_ID = 0;
+
+		// Find the killer & the scorer
+		CBaseEntity* pInflictor = info.GetInflictor();
+		CBaseEntity* pKiller = info.GetAttacker();
+		if (pKiller->IsPlayer())
+		{
+			CBasePlayer* pScorer = GetDeathScorer(pKiller, pInflictor, pVictim);
+
+			// Custom damage type?
+			if (info.GetDamageCustom())
+			{
+				killer_weapon_name = GetDamageCustomString(info);
+				if (pScorer)
+				{
+					killer_ID = pScorer->GetUserID();
+				}
+			}
+			else
+			{
+				// Is the killer a client?
+				if (pScorer)
+				{
+					killer_ID = pScorer->GetUserID();
+
+					if (pInflictor)
+					{
+						if (pInflictor == pScorer)
+						{
+							// If the inflictor is the killer,  then it must be their current weapon doing the damage
+							if (pScorer->GetActiveWeapon())
+							{
+#ifdef HL1MP_DLL
+								killer_weapon_name = pScorer->GetActiveWeapon()->GetClassname();
+#else
+								killer_weapon_name = pScorer->GetActiveWeapon()->GetDeathNoticeName();
+#endif
+							}
+						}
+						else
+						{
+							killer_weapon_name = STRING(pInflictor->m_iClassname);  // it's just that easy
+						}
+					}
+				}
+				else
+				{
+					killer_weapon_name = STRING(pInflictor->m_iClassname);
+				}
+
+				// strip the NPC_* or weapon_* from the inflictor's classname
+				if (strncmp(killer_weapon_name, "weapon_", 7) == 0)
+				{
+					killer_weapon_name += 7;
+				}
+				else if (strncmp(killer_weapon_name, "NPC_", 4) == 0)
+				{
+					killer_weapon_name += 4;
+				}
+				else if (strncmp(killer_weapon_name, "func_", 5) == 0)
+				{
+					killer_weapon_name += 5;
+				}
+			}
+
+			const char* vic_name = GetNPCName(pVictim);
+
+			IGameEvent* event = gameeventmanager->CreateEvent("npc_death");
+			if (event)
+			{
+				event->SetInt("attacker", killer_ID);
+				event->SetString("victimname", vic_name);
+				event->SetInt("customkill", info.GetDamageCustom());
+				event->SetInt("priority", 7);	// HLTV event priority, not transmitted
+#ifdef HL1MP_DLL
+				event->SetString("weapon", killer_weapon_name);
+#endif			
+				gameeventmanager->FireEvent(event);
+			}
+		}
+	}
+
+	const char* CSingleplayRules::GetNPCName(CBaseEntity* pVictim)
+	{
+		//todo: use properly localized names.
+		const char* entityClassname = pVictim->GetClassname();
+
+		// strip the NPC_* or weapon_* from the inflictor's classname
+		if (strncmp(entityClassname, "npc_", 4) == 0)
+		{
+			entityClassname += 4;
+		}
+
+		return entityClassname;
+	}
+
+	CBasePlayer* CSingleplayRules::GetDeathScorer(CBaseEntity* pKiller, CBaseEntity* pInflictor, CBaseEntity* pVictim)
+	{
+		if ( pKiller)
+		{
+			if ( pKiller->Classify() == CLASS_PLAYER )
+				return (CBasePlayer*)pKiller;
+
+			if ( !pKiller->IsNPC() )
+			{
+				// Killing entity might be specifying a scorer player
+				IScorer* pScorerInterface = dynamic_cast<IScorer*>( pKiller );
+				if ( pScorerInterface )
+				{
+					CBasePlayer* pPlayer = pScorerInterface->GetScorer();
+					if ( pPlayer )
+						return pPlayer;
+				}
+
+				// Inflicting entity might be specifying a scoring player
+				pScorerInterface = dynamic_cast<IScorer*>( pInflictor );
+				if ( pScorerInterface )
+				{
+					CBasePlayer* pPlayer = pScorerInterface->GetScorer();
+					if ( pPlayer )
+						return pPlayer;
+				}
+			}
+		}
+
+		return NULL;
 	}
 
 	//=========================================================
@@ -478,8 +753,7 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	//=========================================================
 	int CSingleplayRules::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
 	{
-		// why would a single player in half life need this? 
-		return GR_NOTTEAMMATE;
+		return GR_TEAMMATE;
 	}
 
 	//=========================================================
@@ -497,4 +771,3 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 	}
 
 #endif
-

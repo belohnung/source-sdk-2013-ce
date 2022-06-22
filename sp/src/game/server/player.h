@@ -253,6 +253,13 @@ public:
 	IPlayerInfo *GetPlayerInfo() { return &m_PlayerInfo; }
 	IBotController *GetBotController() { return &m_PlayerInfo; }
 
+#ifdef SDK2013CE_SAVERESTORE
+	// Allows the game to save each players progress over a map change.
+	// Create the booleans required for transitions to work.
+	bool m_bTransition;
+	bool m_bTransitionTeleported;
+#endif // SDK2013CE_SAVERESTORE
+
 	virtual void			SetModel( const char *szModelName );
 	void					SetBodyPitch( float flPitch );
 

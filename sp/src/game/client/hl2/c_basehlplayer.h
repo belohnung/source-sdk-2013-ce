@@ -77,5 +77,4 @@ private:
 friend class CHL2GameMovement;
 };
 
-
 #endif

@@ -54,5 +54,12 @@ ConVar mp_fadetoblack(
 	FCVAR_REPLICATED | FCVAR_NOTIFY, 
 	"fade a player's screen to black when he dies" );
 
+#ifdef SDK2013CE_SAVERESTORE
+ConVar mp_transition_players_percent(
+	"mp_transition_players_percent",
+	"66",
+	FCVAR_NOTIFY | FCVAR_REPLICATED,
+	"How many players in percent are needed for a level transition?" );
+#endif // SDK2013CE_SAVERESTORE
 
 ConVar sv_hudhint_sound( "sv_hudhint_sound", "1", FCVAR_REPLICATED );

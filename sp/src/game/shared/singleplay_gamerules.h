@@ -12,6 +12,7 @@
 
 
 #include "gamerules.h"
+#include "multiplay_gamerules.h"
 
 
 #ifdef CLIENT_DLL
@@ -19,7 +20,6 @@
 	#define CSingleplayRules C_SingleplayRules
 
 #endif
-
 
 //=========================================================
 // CSingleplayRules - rules for the single player Half-Life 
@@ -48,9 +48,17 @@ public:
 	virtual int		Damage_GetNoPhysicsForce( void );
 	virtual int		Damage_GetShouldNotBleed( void );
 
-#ifdef CLIENT_DLL
+	
 
-#else
+	virtual bool ShouldDrawHeadLabels()
+	{
+		if ( mp_show_voice_icons.GetBool() == false )
+			return false;
+
+		return BaseClass::ShouldDrawHeadLabels();
+	}
+
+#ifndef CLIENT_DLL
 
 	CSingleplayRules();
 	virtual ~CSingleplayRules() {}
@@ -88,7 +96,11 @@ public:
 // Client kills/scoring
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void PlayerKilled( CBasePlayer *pVictim, const CTakeDamageInfo &info );
+	virtual void NPCKilled( CBaseEntity *pVictim, const CTakeDamageInfo &info );
 	virtual void DeathNotice( CBasePlayer *pVictim, const CTakeDamageInfo &info );
+	virtual void DeathNoticeNPC( CBaseEntity *pVictim, const CTakeDamageInfo& info );
+	const char* GetNPCName( CBaseEntity *pVictim );
+	virtual CBasePlayer *GetDeathScorer( CBaseEntity *pKiller, CBaseEntity *pInflictor, CBaseEntity *pVictim );
 
 // Weapon spawn/respawn control
 	virtual int WeaponShouldRespawn( CBaseCombatWeapon *pWeapon );
@@ -125,6 +137,7 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) {return "";};
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual bool PlayerCanHearChat( CBasePlayer *pListener, CBasePlayer *pSpeaker );
+
 #endif
 };
 

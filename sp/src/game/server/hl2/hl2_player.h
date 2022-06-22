@@ -108,6 +108,11 @@ public:
 	virtual void 		ModifyOrAppendPlayerCriteria( AI_CriteriaSet& set );
 
 	void				DrawDebugGeometryOverlays(void);
+#ifdef SDK2013CE_SAVERESTORE
+	void				LoadTransitionFile( void );
+	void				SaveTransitionFile( void );
+	virtual bool		WantsLagCompensationOnEntity( const CBasePlayer* pPlayer, const CUserCmd* pCmd, const CBitVec<MAX_EDICTS>* pEntityTransmitBits ) const;
+#endif // SDK2013CE_SAVERESTORE
 
 	virtual Vector		EyeDirection2D( void );
 	virtual Vector		EyeDirection3D( void );
@@ -194,6 +199,9 @@ public:
 	void				InputIgnoreFallDamageWithoutReset( inputdata_t &inputdata );
 	void				InputEnableFlashlight( inputdata_t &inputdata );
 	void				InputDisableFlashlight( inputdata_t &inputdata );
+
+	void SetPlayerModel( void );
+	bool ValidatePlayerModel( const char* pModel );
 
 	const impactdamagetable_t &GetPhysicsImpactDamageTable();
 	virtual int			OnTakeDamage( const CTakeDamageInfo &info );
@@ -360,7 +368,7 @@ private:
 	EHANDLE				m_hLocatorTargetEntity; // The entity that's being tracked by the suit locator.
 
 	float				m_flTimeNextLadderHint;	// Next time we're eligible to display a HUD hint about a ladder.
-	
+
 	friend class CHL2GameMovement;
 };
 

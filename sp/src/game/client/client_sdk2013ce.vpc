@@ -15,7 +15,7 @@ $Configuration
 	$Compiler
 	{
 		$AdditionalIncludeDirectories	"$BASE;..\..\public;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;$SRCDIR\game\shared\sdk2013ce;.\hl2;.\hl2\elements;.\episodic;.\sdk2013ce"
-		$PreprocessorDefinitions		"$BASE;HL2_CLIENT_DLL;HL2_EPISODIC;SDK2013CE"
+		$PreprocessorDefinitions		"$BASE;HL2_CLIENT_DLL;HL2_EPISODIC;SDK2013CE;SDK2013CE_SAVERESTORE"
 	}
 }
 
@@ -26,9 +26,16 @@ $Project "Client"
 		$File	"hud_chat.cpp"
 		$File	"c_team_objectiveresource.cpp"
 		$File	"c_team_objectiveresource.h"
+		$File	"$SRCDIR\game\shared\predicted_viewmodel.cpp"
+		$File	"$SRCDIR\game\shared\predicted_viewmodel.h"
 
 		$Folder	"SDK2013CE DLL"
 		{
+		}
+		
+		$Folder "HL2MP DLL"
+		{
+			$File	"hl2mp\hud_deathnotice.cpp"
 		}
 
 		$Folder	"HL2 DLL"
@@ -87,7 +94,6 @@ $Project "Client"
 			$File	"$SRCDIR\game\shared\hl2\citadel_effects_shared.h"
 			$File	"hl2\clientmode_hlnormal.cpp"
 			$File	"hl2\clientmode_hlnormal.h"
-			$File	"death.cpp"
 			$File	"$SRCDIR\game\shared\hl2\env_headcrabcanister_shared.cpp"
 			$File	"$SRCDIR\game\shared\hl2\env_headcrabcanister_shared.h"
 			$File	"$SRCDIR\game\shared\episodic\npc_advisor_shared.h"

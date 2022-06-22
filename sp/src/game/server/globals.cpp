@@ -25,3 +25,6 @@
 Vector			g_vecAttackDir;
 int				g_iSkillLevel;
 bool			g_fGameOver;
+#ifdef SDK2013CE_SAVERESTORE
+bool			g_transitioned;
+#endif // SDK2013CE_SAVERESTORE

@@ -50,6 +50,10 @@ CUtlVector< CHandle<CTriggerMultiple> >	g_hWeaponFireTriggers;
 
 extern CServerGameDLL	g_ServerGameDLL;
 extern bool				g_fGameOver;
+#ifdef SDK2013CE_SAVERESTORE
+extern bool				g_transitioned;
+extern ConVar			mp_transition_players_percent;
+#endif // SDK2013CE_SAVERESTORE
 ConVar showtriggers( "showtriggers", "0", FCVAR_CHEAT, "Shows trigger brushes" );
 
 bool IsTriggerClass( CBaseEntity *pEntity );
@@ -1555,11 +1559,54 @@ void CChangeLevel::WarnAboutActiveLead( void )
 
 void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 {
+#ifndef SDK2013CE_SAVERESTORE
 	CBaseEntity	*pLandmark;
 	levellist_t	levels[16];
+#endif // !SDK2013CE_SAVERESTORE
 
 	Assert(!FStrEq(m_szMapName, ""));
 
+#ifdef SDK2013CE_SAVERESTORE
+	CBasePlayer* pPlayer = ( pActivator && pActivator->IsPlayer() ) ? ToBasePlayer( pActivator ) : UTIL_GetLocalPlayer();
+	if ( !pPlayer )
+		return;
+
+	pPlayer->m_bTransition = true;
+
+	if ( mp_transition_players_percent.GetInt() > 0 )
+	{
+		int totalPlayers = 0;
+		int transitionPlayers = 0;
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer* pPlayer = UTIL_PlayerByIndex( i );
+			if ( pPlayer && pPlayer->IsAlive() )
+			{
+				totalPlayers++;
+				if ( pPlayer->m_bTransition )
+					transitionPlayers++;
+			}
+		}
+
+		if ( ( (int)( transitionPlayers / totalPlayers * 100 ) ) < mp_transition_players_percent.GetInt() )
+		{
+			Msg( "Transitions: Not enough players to trigger level change\n" );
+			return;
+		}
+	}
+
+	CHL2_Player* p2Player = (CHL2_Player*)UTIL_GetLocalPlayer();
+	p2Player->SaveTransitionFile();
+	g_transitioned = true;
+
+	// This object will get removed in the call to engine->ChangeLevel, copy the params into "safe" memory
+	Q_strncpy( st_szNextMap, m_szMapName, sizeof( st_szNextMap ) );
+
+	// Change to the next map.
+	engine->ChangeLevel( st_szNextMap, NULL );
+	// As far as we're concerned this is where we stop the code because we just transitioned.
+	return;
+#else
 	// Don't work in deathmatch
 	if ( g_pGameRules->IsDeathmatch() )
 		return;
@@ -1648,6 +1695,7 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 
 		SetTouch( NULL );
 	}
+#endif // !SDK2013CE_SAVERESTORE
 }
 
 //

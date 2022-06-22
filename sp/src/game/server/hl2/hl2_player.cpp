@@ -55,6 +55,11 @@
 #include "portal_player.h"
 #endif // PORTAL
 
+#ifdef SDK2013CE_SAVERESTORE
+#include "filesystem.h"
+#include "ammodef.h"
+#endif // SDK2013CE_SAVERESTORE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -79,21 +84,11 @@ extern int gEvilImpulse101;
 
 ConVar sv_autojump( "sv_autojump", "0" );
 
-ConVar hl2_walkspeed( "hl2_walkspeed", "150" );
-ConVar hl2_normspeed( "hl2_normspeed", "190" );
-ConVar hl2_sprintspeed( "hl2_sprintspeed", "320" );
+ConVar hl2_walkspeed( "sv_hl2_walkspeed", "150", FCVAR_CHEAT );
+ConVar hl2_normspeed( "sv_hl2_normspeed", "190", FCVAR_CHEAT );
+ConVar hl2_sprintspeed( "sv_hl2_sprintspeed", "320", FCVAR_CHEAT );
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
-
-#ifdef HL2MP
-	#define	HL2_WALK_SPEED 150
-	#define	HL2_NORM_SPEED 190
-	#define	HL2_SPRINT_SPEED 320
-#else
-	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
-	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
-	#define	HL2_SPRINT_SPEED hl2_sprintspeed.GetFloat()
-#endif
 
 ConVar player_showpredictedposition( "player_showpredictedposition", "0" );
 ConVar player_showpredictedposition_timestep( "player_showpredictedposition_timestep", "1.0" );
@@ -130,6 +125,27 @@ static impactentry_t cappedPlayerAngularTable[] =
 	{ 150*150, 20 },
 	{ 200*200, 30 },
 	//{ 300*300, 500 },
+};
+
+int g_iLastCitizenModel = 0;
+
+const char *g_ppszRandomCitizenModels[] = 
+{
+	"models/humans/group03/male_01.mdl",
+	"models/humans/group03/male_02.mdl",
+	"models/humans/group03/female_01.mdl",
+	"models/humans/group03/male_03.mdl",
+	"models/humans/group03/female_02.mdl",
+	"models/humans/group03/male_04.mdl",
+	"models/humans/group03/female_03.mdl",
+	"models/humans/group03/male_05.mdl",
+	"models/humans/group03/female_04.mdl",
+	"models/humans/group03/male_06.mdl",
+	"models/humans/group03/female_06.mdl",
+	"models/humans/group03/male_07.mdl",
+	"models/humans/group03/female_07.mdl",
+	"models/humans/group03/male_08.mdl",
+	"models/humans/group03/male_09.mdl",
 };
 
 static impactdamagetable_t gCappedPlayerImpactDamageTable =
@@ -435,6 +451,9 @@ void CHL2_Player::Precache( void )
 	PrecacheScriptSound( "HL2Player.TrainUse" );
 	PrecacheScriptSound( "HL2Player.Use" );
 	PrecacheScriptSound( "HL2Player.BurnPain" );
+
+	for ( int i = 0; i < ARRAYSIZE( g_ppszRandomCitizenModels ); ++i )
+		PrecacheModel( g_ppszRandomCitizenModels[i] );
 }
 
 //-----------------------------------------------------------------------------
@@ -980,6 +999,1146 @@ void CHL2_Player::Activate( void )
 	GetPlayerProxy();
 }
 
+#ifdef SDK2013CE_SAVERESTORE
+extern ConVar sv_maxunlag;
+
+//------------------------------------------------------------------------------
+// Purpose :
+//------------------------------------------------------------------------------
+void CHL2_Player::SaveTransitionFile( void )
+{
+	FileHandle_t hFile = g_pFullFileSystem->Open("cfg/transition.cfg", "w");
+
+	if (hFile == FILESYSTEM_INVALID_HANDLE)
+	{
+		Warning("Invalid filesystem handle \n");
+		CUtlBuffer buf(0, 0, CUtlBuffer::TEXT_BUFFER);
+		g_pFullFileSystem->WriteFile("cfg/transition.cfg", "MOD", buf);
+		return;
+	}
+	else
+	{
+		// Iterate all active players
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CHL2_Player* pPlayerMP = dynamic_cast<CHL2_Player*>(UTIL_PlayerByIndex(i));
+			if (pPlayerMP == NULL)
+			{
+				//SecobMod__Information: If we're a listen server then the host is both a server and a client. As a server they return NULL so we return 
+				g_pFullFileSystem->Close(hFile);
+				return;
+			}
+#ifdef SecobMod__USE_PLAYERCLASSES
+			int ClassValue = pPlayerMP->m_iCurrentClass;
+#endif //SecobMod__USE_PLAYERCLASSES
+			int HealthValue = pPlayerMP->m_iHealth;
+			int ArmourValue = 0;  // pPlayerMP->m_iArmor;
+			int WeaponSlot = 0;
+
+
+			//Set the weapon slot back to 0 for cleanliness and ease of use in hl2mp_client.cpps restore code.
+			WeaponSlot = 0;
+			Msg("Saving cfg file...\n");
+			//Get this persons steam ID.
+			//Also write on a new line a { and use the SteamID as our heading!.
+			char tmpSteamid[32];
+			Q_snprintf(tmpSteamid, sizeof(tmpSteamid), "\"%s\"\n""{\n", engine->GetPlayerNetworkIDString(pPlayerMP->edict()));
+
+			//Write this persons steam ID to our file.
+			g_pFullFileSystem->Write(&tmpSteamid, strlen(tmpSteamid), hFile);
+
+#ifdef SecobMod__USE_PLAYERCLASSES
+			//Get their Class
+			char data1[32];
+			Q_snprintf(data1, sizeof(data1), "\"CurrentClass" "\" ");
+			char data2[32];
+			Q_snprintf(data2, sizeof(data2), "\"%i\"\n", ClassValue);
+			//Write this persons Class to the file.
+			g_pFullFileSystem->Write(&data1, strlen(data1), hFile);
+			g_pFullFileSystem->Write(&data2, strlen(data2), hFile);
+#endif //SecobMod__USE_PLAYERCLASSES
+
+			//Get their Health
+			char data3[32];
+			Q_snprintf(data3, sizeof(data3), "\"Health" "\" ");
+			char data4[32];
+			Q_snprintf(data4, sizeof(data4), "\"%i\"\n", HealthValue);
+			//Write this persons Health to the file.
+			g_pFullFileSystem->Write(&data3, strlen(data3), hFile);
+			g_pFullFileSystem->Write(&data4, strlen(data4), hFile);
+
+			//Get their Armour
+			char data5[32];
+			Q_snprintf(data5, sizeof(data5), "\"Armour" "\" ");
+			char data6[32];
+			Q_snprintf(data6, sizeof(data6), "\"%i\"\n", ArmourValue);
+			//Write this persons Armour to the file.
+			g_pFullFileSystem->Write(&data5, strlen(data5), hFile);
+			g_pFullFileSystem->Write(&data6, strlen(data6), hFile);
+
+
+			//Go through the players inventory to find out their weapons and ammo.
+			CBaseCombatWeapon* pCheck;
+
+			//This is our player. This is set because currently this section is in TakeDamage of hl2mp_player.cpp
+			CBasePlayer* pPlayer = ToBasePlayer(pPlayerMP);
+			const char* weaponName = "";
+			weaponName = pPlayer->GetActiveWeapon()->GetClassname();
+
+			//Get their current weapon so we can attempt to switch to it on spawning.
+			char ActiveWepPre[32];
+			Q_snprintf(ActiveWepPre, sizeof(ActiveWepPre), "\n""\"ActiveWeapon\" ");
+			//Write our weapon.
+			g_pFullFileSystem->Write(&ActiveWepPre, strlen(ActiveWepPre), hFile);
+			char ActiveWep[32];
+			Q_snprintf(ActiveWep, sizeof(ActiveWep), "\"%s\"\n", weaponName);
+			//Write our weapon.
+			g_pFullFileSystem->Write(&ActiveWep, strlen(ActiveWep), hFile);
+
+
+			for (int i = 0; i < WeaponCount(); ++i)
+			{
+				pCheck = GetWeapon(i);
+				if (!pCheck)
+					continue;
+
+				//Create a temporary int for both primary and secondary clip ammo counts.
+				int TempPrimaryClip = pPlayer->GetAmmoCount(pCheck->GetPrimaryAmmoType());
+				int TempSecondaryClip = pPlayer->GetAmmoCount(pCheck->GetSecondaryAmmoType());
+
+				//Creaye a temporary int for both primary and seconday clip ammo TYPES.
+				int ammoIndex_Pri = pCheck->GetPrimaryAmmoType();
+				int ammoIndex_Sec = pCheck->GetSecondaryAmmoType();
+
+				//Get out weapons classname and get our text set up.
+				char pCheckWep[32];
+				Q_snprintf(pCheckWep, sizeof(pCheckWep), "\"Weapon_%i\" \"%s\"\n", WeaponSlot, pCheck->GetClassname());
+				//Write our weapon.
+				g_pFullFileSystem->Write(&pCheckWep, strlen(pCheckWep), hFile);
+
+				if (TempPrimaryClip >= 1)
+				{
+					//Get out weapons primary clip and get our text set up.
+					char PrimaryClip[32];
+					Q_snprintf(PrimaryClip, sizeof(PrimaryClip), "\"Weapon_%i_PriClip\" \"%i\"\n", WeaponSlot, TempPrimaryClip);
+					//Now write our weapons primary clip count.
+					g_pFullFileSystem->Write(&PrimaryClip, strlen(PrimaryClip), hFile);
+					//Get out weapons primary clip ammo type.
+					if (ammoIndex_Pri != -1)
+					{
+						char PrimaryWeaponClipAmmoType[32];
+						Q_snprintf(PrimaryWeaponClipAmmoType, sizeof(PrimaryWeaponClipAmmoType), "\"Weapon_%i_PriClipAmmo\" ", WeaponSlot);
+						char PrimaryClipAmmoType[32];
+						Q_snprintf(PrimaryClipAmmoType, sizeof(PrimaryClipAmmoType), "\"%s\"\n", GetAmmoDef()->GetAmmoOfIndex(ammoIndex_Pri)->pName);
+						//Now write our weapons primary clip count.
+						g_pFullFileSystem->Write(&PrimaryWeaponClipAmmoType, strlen(PrimaryWeaponClipAmmoType), hFile);
+						g_pFullFileSystem->Write(&PrimaryClipAmmoType, strlen(PrimaryClipAmmoType), hFile);
+					}
+				}
+
+				if (TempSecondaryClip >= 1)
+				{
+					//Get out weapons secondary clip and get our text set up.
+					char SecondaryClip[32];
+					Q_snprintf(SecondaryClip, sizeof(SecondaryClip), "\"Weapon_%i_SecClip\" \"%i\"\n", WeaponSlot, TempSecondaryClip);
+					//Now write our weapons secondary clip count.
+					g_pFullFileSystem->Write(&SecondaryClip, strlen(SecondaryClip), hFile);
+					//Get out weapons secondary clip ammo type.
+					if (ammoIndex_Sec != -1)
+					{
+						char SecondaryWeaponClipAmmoType[32];
+						Q_snprintf(SecondaryWeaponClipAmmoType, sizeof(SecondaryWeaponClipAmmoType), "\"Weapon_%i_SecClipAmmo\" ", WeaponSlot);
+						char SecondaryClipAmmoType[32];
+						Q_snprintf(SecondaryClipAmmoType, sizeof(SecondaryClipAmmoType), "\"%s\"\n", GetAmmoDef()->GetAmmoOfIndex(ammoIndex_Pri)->pName);
+						//Now write our weapons primary clip count.
+						g_pFullFileSystem->Write(&SecondaryWeaponClipAmmoType, strlen(SecondaryWeaponClipAmmoType), hFile);
+						g_pFullFileSystem->Write(&SecondaryClipAmmoType, strlen(SecondaryClipAmmoType), hFile);
+					}
+				}
+
+				//Now increase our weapon slot number for the next weapon (if needed).
+				WeaponSlot++;
+			}
+
+			//Also write on a new line a } to close off this Players section. Now that we're done with all weapons.
+			char SecClose[32];
+			Q_snprintf(SecClose, sizeof(SecClose), "}\n\n", NULL);
+			g_pFullFileSystem->Write(&SecClose, strlen(SecClose), hFile);
+		}
+
+		//Close the file. Important or changes don't get saved till the exe closes which we don't want.
+		g_pFullFileSystem->Close(hFile);
+	}
+}
+
+//------------------------------------------------------------------------------
+// Purpose :
+//------------------------------------------------------------------------------
+void CHL2_Player::LoadTransitionFile( void )
+{
+
+	//if (Transitioned)
+	//{
+	  //SecobMod__ChangeME!
+	  //SecobMod__FixMe For whatever reason the new secobmod won't find the cfg file after a map change unless we hard code the file path. Maybe someone with better filesystem knowledge can fix this back
+	  // to how it used to be (just cfg/transition.cfg). Probably to do with mounting other content in the gameinfo.txt search paths (well that's my guess at least).
+	KeyValues* pkvTransitionRestoreFile = new KeyValues("cfg/transition.cfg");
+	if (pkvTransitionRestoreFile->LoadFromFile(filesystem, "cfg/transition.cfg"))
+	{
+		while (pkvTransitionRestoreFile)
+		{
+			const char* pszSteamID = pkvTransitionRestoreFile->GetName(); //Gets our header, which we use the players SteamID for.
+			const char* PlayerSteamID = engine->GetPlayerNetworkIDString(edict()); //Finds the current players Steam ID.
+
+			Msg("In-File SteamID is %s.\n", pszSteamID);
+			Msg("In-Game SteamID is %s.\n", PlayerSteamID);
+
+			if (Q_strcmp(PlayerSteamID, pszSteamID) != 0)
+			{
+				if (pkvTransitionRestoreFile == NULL)
+				{
+					break;
+				}
+				break;
+			}
+
+			Msg("SteamID Match Found!");
+
+#ifdef SecobMod__USE_PLAYERCLASSES
+			//Class.
+			KeyValues* pkvCurrentClass = pkvTransitionRestoreFile->FindKey("CurrentClass");
+#endif //SecobMod__USE_PLAYERCLASSES
+			//Health
+			KeyValues* pkvHealth = pkvTransitionRestoreFile->FindKey("Health");
+
+			//Armour
+			KeyValues* pkvArmour = pkvTransitionRestoreFile->FindKey("Armour");
+
+			//CurrentHeldWeapon
+			KeyValues* pkvActiveWep = pkvTransitionRestoreFile->FindKey("ActiveWeapon");
+
+			//Weapon_0.
+			KeyValues* pkvWeapon_0 = pkvTransitionRestoreFile->FindKey("Weapon_0");
+			KeyValues* pkvWeapon_0_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_0_PriClip");
+			KeyValues* pkvWeapon_0_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_0_SecClip");
+			KeyValues* pkvWeapon_0_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_0_PriClipAmmo");
+			KeyValues* pkvWeapon_0_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_0_SecClipAmmo");
+			//Weapon_1.
+			KeyValues* pkvWeapon_1 = pkvTransitionRestoreFile->FindKey("Weapon_1");
+			KeyValues* pkvWeapon_1_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_1_PriClip");
+			KeyValues* pkvWeapon_1_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_1_SecClip");
+			KeyValues* pkvWeapon_1_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_1_PriClipAmmo");
+			KeyValues* pkvWeapon_1_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_1_SecClipAmmo");
+			//Weapon_2.
+			KeyValues* pkvWeapon_2 = pkvTransitionRestoreFile->FindKey("Weapon_2");
+			KeyValues* pkvWeapon_2_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_2_PriClip");
+			KeyValues* pkvWeapon_2_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_2_SecClip");
+			KeyValues* pkvWeapon_2_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_2_PriClipAmmo");
+			KeyValues* pkvWeapon_2_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_2_SecClipAmmo");
+			//Weapon_3.
+			KeyValues* pkvWeapon_3 = pkvTransitionRestoreFile->FindKey("Weapon_3");
+			KeyValues* pkvWeapon_3_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_3_PriClip");
+			KeyValues* pkvWeapon_3_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_3_SecClip");
+			KeyValues* pkvWeapon_3_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_3_PriClipAmmo");
+			KeyValues* pkvWeapon_3_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_3_SecClipAmmo");
+			//Weapon_4.
+			KeyValues* pkvWeapon_4 = pkvTransitionRestoreFile->FindKey("Weapon_4");
+			KeyValues* pkvWeapon_4_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_4_PriClip");
+			KeyValues* pkvWeapon_4_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_4_SecClip");
+			KeyValues* pkvWeapon_4_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_4_PriClipAmmo");
+			KeyValues* pkvWeapon_4_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_4_SecClipAmmo");
+			//Weapon_5.
+			KeyValues* pkvWeapon_5 = pkvTransitionRestoreFile->FindKey("Weapon_5");
+			KeyValues* pkvWeapon_5_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_5_PriClip");
+			KeyValues* pkvWeapon_5_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_5_SecClip");
+			KeyValues* pkvWeapon_5_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_5_PriClipAmmo");
+			KeyValues* pkvWeapon_5_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_5_SecClipAmmo");
+			//Weapon_6.
+			KeyValues* pkvWeapon_6 = pkvTransitionRestoreFile->FindKey("Weapon_6");
+			KeyValues* pkvWeapon_6_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_6_PriClip");
+			KeyValues* pkvWeapon_6_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_6_SecClip");
+			KeyValues* pkvWeapon_6_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_6_PriClipAmmo");
+			KeyValues* pkvWeapon_6_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_6_SecClipAmmo");
+			//Weapon_7.
+			KeyValues* pkvWeapon_7 = pkvTransitionRestoreFile->FindKey("Weapon_7");
+			KeyValues* pkvWeapon_7_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_7_PriClip");
+			KeyValues* pkvWeapon_7_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_7_SecClip");
+			KeyValues* pkvWeapon_7_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_7_PriClipAmmo");
+			KeyValues* pkvWeapon_7_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_7_SecClipAmmo");
+			//Weapon_8.
+			KeyValues* pkvWeapon_8 = pkvTransitionRestoreFile->FindKey("Weapon_8");
+			KeyValues* pkvWeapon_8_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_8_PriClip");
+			KeyValues* pkvWeapon_8_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_8_SecClip");
+			KeyValues* pkvWeapon_8_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_8_PriClipAmmo");
+			KeyValues* pkvWeapon_8_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_8_SecClipAmmo");
+			//Weapon_9.
+			KeyValues* pkvWeapon_9 = pkvTransitionRestoreFile->FindKey("Weapon_9");
+			KeyValues* pkvWeapon_9_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_9_PriClip");
+			KeyValues* pkvWeapon_9_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_9_SecClip");
+			KeyValues* pkvWeapon_9_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_9_PriClipAmmo");
+			KeyValues* pkvWeapon_9_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_9_SecClipAmmo");
+			//Weapon_10.
+			KeyValues* pkvWeapon_10 = pkvTransitionRestoreFile->FindKey("Weapon_10");
+			KeyValues* pkvWeapon_10_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_10_PriClip");
+			KeyValues* pkvWeapon_10_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_10_SecClip");
+			KeyValues* pkvWeapon_10_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_10_PriClipAmmo");
+			KeyValues* pkvWeapon_10_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_10_SecClipAmmo");
+			//Weapon_11.
+			KeyValues* pkvWeapon_11 = pkvTransitionRestoreFile->FindKey("Weapon_11");
+			KeyValues* pkvWeapon_11_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_11_PriClip");
+			KeyValues* pkvWeapon_11_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_11_SecClip");
+			KeyValues* pkvWeapon_11_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_11_PriClipAmmo");
+			KeyValues* pkvWeapon_11_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_11_SecClipAmmo");
+			//Weapon_12.
+			KeyValues* pkvWeapon_12 = pkvTransitionRestoreFile->FindKey("Weapon_12");
+			KeyValues* pkvWeapon_12_PriClip = pkvTransitionRestoreFile->FindKey("Weapon_12_PriClip");
+			KeyValues* pkvWeapon_12_SecClip = pkvTransitionRestoreFile->FindKey("Weapon_12_SecClip");
+			KeyValues* pkvWeapon_12_PriClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_12_PriClipAmmo");
+			KeyValues* pkvWeapon_12_SecClipAmmo = pkvTransitionRestoreFile->FindKey("Weapon_12_SecClipAmmo");
+
+
+			//=====================================================================	
+#ifdef SecobMod__USE_PLAYERCLASSES
+			if (pszSteamID && pkvCurrentClass && pkvHealth && pkvArmour)
+			{
+
+				//Set ints for the class,health and armour.
+				int PlayerClassValue = pkvCurrentClass->GetInt();
+				int PlayerHealthValue = pkvHealth->GetInt();
+				int PlayerArmourValue = pkvArmour->GetInt();
+
+				//CurrentWeapon
+				const char* pkvActiveWep_Value = pkvActiveWep->GetString();
+
+				//Set String and Ints for Weapon_0
+				const char* pkvWeapon_0_Value = pkvWeapon_0->GetString();
+				int Weapon_0_PriClip_Value = pkvWeapon_0_PriClip->GetInt();
+				const char* pkvWeapon_0_PriClipAmmo_Value = pkvWeapon_0_PriClipAmmo->GetString();
+				int Weapon_0_SecClip_Value = pkvWeapon_0_SecClip->GetInt();
+				const char* pkvWeapon_0_SecClipAmmo_Value = pkvWeapon_0_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_1
+				const char* pkvWeapon_1_Value = pkvWeapon_1->GetString();
+				int Weapon_1_PriClip_Value = pkvWeapon_1_PriClip->GetInt();
+				const char* pkvWeapon_1_PriClipAmmo_Value = pkvWeapon_1_PriClipAmmo->GetString();
+				int Weapon_1_SecClip_Value = pkvWeapon_1_SecClip->GetInt();
+				const char* pkvWeapon_1_SecClipAmmo_Value = pkvWeapon_1_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_2
+				const char* pkvWeapon_2_Value = pkvWeapon_2->GetString();
+				int Weapon_2_PriClip_Value = pkvWeapon_2_PriClip->GetInt();
+				const char* pkvWeapon_2_PriClipAmmo_Value = pkvWeapon_2_PriClipAmmo->GetString();
+				int Weapon_2_SecClip_Value = pkvWeapon_2_SecClip->GetInt();
+				const char* pkvWeapon_2_SecClipAmmo_Value = pkvWeapon_2_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_3
+				const char* pkvWeapon_3_Value = pkvWeapon_3->GetString();
+				int Weapon_3_PriClip_Value = pkvWeapon_3_PriClip->GetInt();
+				const char* pkvWeapon_3_PriClipAmmo_Value = pkvWeapon_3_PriClipAmmo->GetString();
+				int Weapon_3_SecClip_Value = pkvWeapon_3_SecClip->GetInt();
+				const char* pkvWeapon_3_SecClipAmmo_Value = pkvWeapon_3_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_4
+				const char* pkvWeapon_4_Value = pkvWeapon_4->GetString();
+				int Weapon_4_PriClip_Value = pkvWeapon_4_PriClip->GetInt();
+				const char* pkvWeapon_4_PriClipAmmo_Value = pkvWeapon_4_PriClipAmmo->GetString();
+				int Weapon_4_SecClip_Value = pkvWeapon_4_SecClip->GetInt();
+				const char* pkvWeapon_4_SecClipAmmo_Value = pkvWeapon_4_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_5
+				const char* pkvWeapon_5_Value = pkvWeapon_5->GetString();
+				int Weapon_5_PriClip_Value = pkvWeapon_5_PriClip->GetInt();
+				const char* pkvWeapon_5_PriClipAmmo_Value = pkvWeapon_5_PriClipAmmo->GetString();
+				int Weapon_5_SecClip_Value = pkvWeapon_5_SecClip->GetInt();
+				const char* pkvWeapon_5_SecClipAmmo_Value = pkvWeapon_5_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_6
+				const char* pkvWeapon_6_Value = pkvWeapon_6->GetString();
+				int Weapon_6_PriClip_Value = pkvWeapon_6_PriClip->GetInt();
+				const char* pkvWeapon_6_PriClipAmmo_Value = pkvWeapon_6_PriClipAmmo->GetString();
+				int Weapon_6_SecClip_Value = pkvWeapon_6_SecClip->GetInt();
+				const char* pkvWeapon_6_SecClipAmmo_Value = pkvWeapon_6_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_7
+				const char* pkvWeapon_7_Value = pkvWeapon_7->GetString();
+				int Weapon_7_PriClip_Value = pkvWeapon_7_PriClip->GetInt();
+				const char* pkvWeapon_7_PriClipAmmo_Value = pkvWeapon_7_PriClipAmmo->GetString();
+				int Weapon_7_SecClip_Value = pkvWeapon_7_SecClip->GetInt();
+				const char* pkvWeapon_7_SecClipAmmo_Value = pkvWeapon_7_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_8
+				const char* pkvWeapon_8_Value = pkvWeapon_8->GetString();
+				int Weapon_8_PriClip_Value = pkvWeapon_8_PriClip->GetInt();
+				const char* pkvWeapon_8_PriClipAmmo_Value = pkvWeapon_8_PriClipAmmo->GetString();
+				int Weapon_8_SecClip_Value = pkvWeapon_8_SecClip->GetInt();
+				const char* pkvWeapon_8_SecClipAmmo_Value = pkvWeapon_8_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_9
+				const char* pkvWeapon_9_Value = pkvWeapon_9->GetString();
+				int Weapon_9_PriClip_Value = pkvWeapon_9_PriClip->GetInt();
+				const char* pkvWeapon_9_PriClipAmmo_Value = pkvWeapon_9_PriClipAmmo->GetString();
+				int Weapon_9_SecClip_Value = pkvWeapon_9_SecClip->GetInt();
+				const char* pkvWeapon_9_SecClipAmmo_Value = pkvWeapon_9_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_10
+				const char* pkvWeapon_10_Value = pkvWeapon_10->GetString();
+				int Weapon_10_PriClip_Value = pkvWeapon_10_PriClip->GetInt();
+				const char* pkvWeapon_10_PriClipAmmo_Value = pkvWeapon_10_PriClipAmmo->GetString();
+				int Weapon_10_SecClip_Value = pkvWeapon_10_SecClip->GetInt();
+				const char* pkvWeapon_10_SecClipAmmo_Value = pkvWeapon_10_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_11
+				const char* pkvWeapon_11_Value = pkvWeapon_11->GetString();
+				int Weapon_11_PriClip_Value = pkvWeapon_11_PriClip->GetInt();
+				const char* pkvWeapon_11_PriClipAmmo_Value = pkvWeapon_11_PriClipAmmo->GetString();
+				int Weapon_11_SecClip_Value = pkvWeapon_11_SecClip->GetInt();
+				const char* pkvWeapon_11_SecClipAmmo_Value = pkvWeapon_11_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_12
+				const char* pkvWeapon_12_Value = pkvWeapon_12->GetString();
+				int Weapon_12_PriClip_Value = pkvWeapon_12_PriClip->GetInt();
+				const char* pkvWeapon_12_PriClipAmmo_Value = pkvWeapon_12_PriClipAmmo->GetString();
+				int Weapon_12_SecClip_Value = pkvWeapon_12_SecClip->GetInt();
+				const char* pkvWeapon_12_SecClipAmmo_Value = pkvWeapon_12_SecClipAmmo->GetString();
+
+
+				//============================================================================================
+
+				if (PlayerClassValue == 1)
+				{
+					m_iCurrentClass = 1;
+					m_iClientClass = m_iCurrentClass;
+					ForceHUDReload(pPlayer);
+					Msg("Respawning...\n");
+					PlayerCanChangeClass = false;
+					RemoveAllItems(true);
+
+					//Give our player the Weapon_0 slots.
+					Msg("Weapon is %s\n", pkvWeapon_0_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_0_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_0_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_0_Value));
+					CBasePlayer::GiveAmmo(Weapon_0_PriClip_Value, pkvWeapon_0_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_0_SecClip_Value, pkvWeapon_0_SecClipAmmo_Value);
+
+					//Give our player the Weapon_1 slots.
+					Msg("Weapon is %s\n", pkvWeapon_1_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_1_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_1_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_1_Value));
+					CBasePlayer::GiveAmmo(Weapon_1_PriClip_Value, pkvWeapon_1_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_1_SecClip_Value, pkvWeapon_1_SecClipAmmo_Value);
+
+					//Give our player the Weapon_2 slots.
+					Msg("Weapon is %s\n", pkvWeapon_2_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_2_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_2_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_2_Value));
+					CBasePlayer::GiveAmmo(Weapon_2_PriClip_Value, pkvWeapon_2_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_2_SecClip_Value, pkvWeapon_2_SecClipAmmo_Value);
+
+					//Give our player the Weapon_3 slots.
+					Msg("Weapon is %s\n", pkvWeapon_3_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_3_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_3_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_3_Value));
+					CBasePlayer::GiveAmmo(Weapon_3_PriClip_Value, pkvWeapon_3_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_3_SecClip_Value, pkvWeapon_3_SecClipAmmo_Value);
+
+					//Give our player the Weapon_4 slots.
+					GiveNamedItem((pkvWeapon_4_Value));
+					CBasePlayer::GiveAmmo(Weapon_4_PriClip_Value, pkvWeapon_4_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_4_SecClip_Value, pkvWeapon_4_SecClipAmmo_Value);
+
+					//Give our player the Weapon_5 slots.
+					GiveNamedItem((pkvWeapon_5_Value));
+					CBasePlayer::GiveAmmo(Weapon_5_PriClip_Value, pkvWeapon_5_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_5_SecClip_Value, pkvWeapon_5_SecClipAmmo_Value);
+
+					//Give our player the Weapon_6 slots.
+					GiveNamedItem((pkvWeapon_6_Value));
+					CBasePlayer::GiveAmmo(Weapon_6_PriClip_Value, pkvWeapon_6_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_6_SecClip_Value, pkvWeapon_6_SecClipAmmo_Value);
+
+					//Give our player the Weapon_7 slots.
+					GiveNamedItem((pkvWeapon_7_Value));
+					CBasePlayer::GiveAmmo(Weapon_7_PriClip_Value, pkvWeapon_7_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_7_SecClip_Value, pkvWeapon_7_SecClipAmmo_Value);
+
+					//Give our player the Weapon_8 slots.
+					GiveNamedItem((pkvWeapon_8_Value));
+					CBasePlayer::GiveAmmo(Weapon_8_PriClip_Value, pkvWeapon_8_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_8_SecClip_Value, pkvWeapon_8_SecClipAmmo_Value);
+
+					//Give our player the Weapon_9 slots.
+					GiveNamedItem((pkvWeapon_9_Value));
+					CBasePlayer::GiveAmmo(Weapon_9_PriClip_Value, pkvWeapon_9_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_9_SecClip_Value, pkvWeapon_9_SecClipAmmo_Value);
+
+					//Give our player the Weapon_10 slots.
+					GiveNamedItem((pkvWeapon_10_Value));
+					CBasePlayer::GiveAmmo(Weapon_10_PriClip_Value, pkvWeapon_10_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_10_SecClip_Value, pkvWeapon_10_SecClipAmmo_Value);
+
+					//Give our player the Weapon_11 slots.
+					GiveNamedItem((pkvWeapon_11_Value));
+					CBasePlayer::GiveAmmo(Weapon_11_PriClip_Value, pkvWeapon_11_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_11_SecClip_Value, pkvWeapon_11_SecClipAmmo_Value);
+
+					//Give our player the Weapon_12 slots.
+					GiveNamedItem((pkvWeapon_12_Value));
+					CBasePlayer::GiveAmmo(Weapon_12_PriClip_Value, pkvWeapon_12_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_12_SecClip_Value, pkvWeapon_12_SecClipAmmo_Value);
+
+					//Now that our player has weapons, switch them to their last held weapon
+					Weapon_Switch(Weapon_OwnsThisType(pkvActiveWep_Value));
+
+					m_iHealth = PlayerHealthValue;
+					m_iMaxHealth = 125;
+					SetArmorValue(PlayerArmourValue);
+					SetMaxArmorValue(0);
+					CBasePlayer::SetWalkSpeed(50);
+					CBasePlayer::SetNormSpeed(190);
+					CBasePlayer::SetSprintSpeed(640);
+					CBasePlayer::SetJumpHeight(200.0);
+
+					//SecobMod__Information This allows you to use filtering while mapping. Such as only a trigger one class may actually trigger. Thanks to Alters for providing this fix.
+					CBasePlayer::KeyValue("targetname", "Assaulter");
+					SetModel("models/sdk/Humans/Group03/male_06_sdk.mdl");
+
+					//SecobMod__Information Due to the way our player classes now work, the first spawn of any class has to teleport to their specific player start.
+					CBaseEntity* pEntity = NULL;
+					Vector pEntityOrigin;
+					pEntity = gEntList.FindEntityByClassnameNearest("info_player_assaulter", pEntityOrigin, 0);
+					if (pEntity != NULL)
+					{
+						pEntityOrigin = pEntity->GetAbsOrigin();
+						SetAbsOrigin(pEntityOrigin);
+					}
+					//PlayerClass bug fix.
+					EquipSuit();
+					StartSprinting();
+					StopSprinting();
+					EquipSuit(false);
+				}
+				else if (PlayerClassValue == 2)
+				{
+					m_iCurrentClass = 2;
+					m_iClientClass = m_iCurrentClass;
+					ForceHUDReload(pPlayer);
+					Msg("Respawning...\n");
+					PlayerCanChangeClass = false;
+					RemoveAllItems(true);
+
+					//Give our player the Weapon_0 slots.
+					Msg("Weapon is %s\n", pkvWeapon_0_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_0_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_0_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_0_Value));
+					CBasePlayer::GiveAmmo(Weapon_0_PriClip_Value, pkvWeapon_0_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_0_SecClip_Value, pkvWeapon_0_SecClipAmmo_Value);
+
+					//Give our player the Weapon_1 slots.
+					Msg("Weapon is %s\n", pkvWeapon_1_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_1_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_1_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_1_Value));
+					CBasePlayer::GiveAmmo(Weapon_1_PriClip_Value, pkvWeapon_1_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_1_SecClip_Value, pkvWeapon_1_SecClipAmmo_Value);
+
+					//Give our player the Weapon_2 slots.
+					Msg("Weapon is %s\n", pkvWeapon_2_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_2_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_2_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_2_Value));
+					CBasePlayer::GiveAmmo(Weapon_2_PriClip_Value, pkvWeapon_2_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_2_SecClip_Value, pkvWeapon_2_SecClipAmmo_Value);
+
+					//Give our player the Weapon_3 slots.
+					Msg("Weapon is %s\n", pkvWeapon_3_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_3_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_3_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_3_Value));
+					CBasePlayer::GiveAmmo(Weapon_3_PriClip_Value, pkvWeapon_3_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_3_SecClip_Value, pkvWeapon_3_SecClipAmmo_Value);
+
+					//Give our player the Weapon_4 slots.
+					GiveNamedItem((pkvWeapon_4_Value));
+					CBasePlayer::GiveAmmo(Weapon_4_PriClip_Value, pkvWeapon_4_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_4_SecClip_Value, pkvWeapon_4_SecClipAmmo_Value);
+
+					//Give our player the Weapon_5 slots.
+					GiveNamedItem((pkvWeapon_5_Value));
+					CBasePlayer::GiveAmmo(Weapon_5_PriClip_Value, pkvWeapon_5_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_5_SecClip_Value, pkvWeapon_5_SecClipAmmo_Value);
+
+					//Give our player the Weapon_6 slots.
+					GiveNamedItem((pkvWeapon_6_Value));
+					CBasePlayer::GiveAmmo(Weapon_6_PriClip_Value, pkvWeapon_6_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_6_SecClip_Value, pkvWeapon_6_SecClipAmmo_Value);
+
+					//Give our player the Weapon_7 slots.
+					GiveNamedItem((pkvWeapon_7_Value));
+					CBasePlayer::GiveAmmo(Weapon_7_PriClip_Value, pkvWeapon_7_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_7_SecClip_Value, pkvWeapon_7_SecClipAmmo_Value);
+
+					//Give our player the Weapon_8 slots.
+					GiveNamedItem((pkvWeapon_8_Value));
+					CBasePlayer::GiveAmmo(Weapon_8_PriClip_Value, pkvWeapon_8_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_8_SecClip_Value, pkvWeapon_8_SecClipAmmo_Value);
+
+					//Give our player the Weapon_9 slots.
+					GiveNamedItem((pkvWeapon_9_Value));
+					CBasePlayer::GiveAmmo(Weapon_9_PriClip_Value, pkvWeapon_9_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_9_SecClip_Value, pkvWeapon_9_SecClipAmmo_Value);
+
+					//Give our player the Weapon_10 slots.
+					GiveNamedItem((pkvWeapon_10_Value));
+					CBasePlayer::GiveAmmo(Weapon_10_PriClip_Value, pkvWeapon_10_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_10_SecClip_Value, pkvWeapon_10_SecClipAmmo_Value);
+
+					//Give our player the Weapon_11 slots.
+					GiveNamedItem((pkvWeapon_11_Value));
+					CBasePlayer::GiveAmmo(Weapon_11_PriClip_Value, pkvWeapon_11_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_11_SecClip_Value, pkvWeapon_11_SecClipAmmo_Value);
+
+					//Give our player the Weapon_12 slots.
+					GiveNamedItem((pkvWeapon_12_Value));
+					CBasePlayer::GiveAmmo(Weapon_12_PriClip_Value, pkvWeapon_12_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_12_SecClip_Value, pkvWeapon_12_SecClipAmmo_Value);
+
+					//Now that our player has weapons, switch them to their last held weapon
+					Weapon_Switch(Weapon_OwnsThisType(pkvActiveWep_Value));
+
+					m_iHealth = PlayerHealthValue;
+					m_iMaxHealth = 100;
+					SetArmorValue(PlayerArmourValue);
+					SetMaxArmorValue(0);
+					CBasePlayer::SetWalkSpeed(150);
+					CBasePlayer::SetNormSpeed(190);
+					CBasePlayer::SetSprintSpeed(500);
+					CBasePlayer::SetJumpHeight(150.0);
+
+					//SecobMod__Information This allows you to use filtering while mapping. Such as only a trigger one class may actually trigger. Thanks to Alters for providing this fix.				
+					CBasePlayer::KeyValue("targetname", "Supporter");
+					SetModel("models/sdk/Humans/Group03/l7h_rebel.mdl");
+
+					//SecobMod__Information Due to the way our player classes now work, the first spawn of any class has to teleport to their specific player start.
+					CBaseEntity* pEntity = NULL;
+					Vector pEntityOrigin;
+					pEntity = gEntList.FindEntityByClassnameNearest("info_player_supporter", pEntityOrigin, 0);
+					if (pEntity != NULL)
+					{
+						pEntityOrigin = pEntity->GetAbsOrigin();
+						SetAbsOrigin(pEntityOrigin);
+					}
+					//PlayerClass bug fix.
+					EquipSuit();
+					StartSprinting();
+					StopSprinting();
+					EquipSuit(false);
+				}
+				else if (PlayerClassValue == 3)
+				{
+					m_iCurrentClass = 3;
+					m_iClientClass = m_iCurrentClass;
+					ForceHUDReload(pPlayer);
+					Msg("Respawning...\n");
+					PlayerCanChangeClass = false;
+					RemoveAllItems(true);
+
+					//Give our player the Weapon_0 slots.
+					Msg("Weapon is %s\n", pkvWeapon_0_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_0_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_0_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_0_Value));
+					CBasePlayer::GiveAmmo(Weapon_0_PriClip_Value, pkvWeapon_0_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_0_SecClip_Value, pkvWeapon_0_SecClipAmmo_Value);
+
+					//Give our player the Weapon_1 slots.
+					Msg("Weapon is %s\n", pkvWeapon_1_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_1_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_1_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_1_Value));
+					CBasePlayer::GiveAmmo(Weapon_1_PriClip_Value, pkvWeapon_1_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_1_SecClip_Value, pkvWeapon_1_SecClipAmmo_Value);
+
+					//Give our player the Weapon_2 slots.
+					Msg("Weapon is %s\n", pkvWeapon_2_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_2_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_2_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_2_Value));
+					CBasePlayer::GiveAmmo(Weapon_2_PriClip_Value, pkvWeapon_2_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_2_SecClip_Value, pkvWeapon_2_SecClipAmmo_Value);
+
+					//Give our player the Weapon_3 slots.
+					Msg("Weapon is %s\n", pkvWeapon_3_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_3_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_3_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_3_Value));
+					CBasePlayer::GiveAmmo(Weapon_3_PriClip_Value, pkvWeapon_3_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_3_SecClip_Value, pkvWeapon_3_SecClipAmmo_Value);
+
+					//Give our player the Weapon_4 slots.
+					GiveNamedItem((pkvWeapon_4_Value));
+					CBasePlayer::GiveAmmo(Weapon_4_PriClip_Value, pkvWeapon_4_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_4_SecClip_Value, pkvWeapon_4_SecClipAmmo_Value);
+
+					//Give our player the Weapon_5 slots.
+					GiveNamedItem((pkvWeapon_5_Value));
+					CBasePlayer::GiveAmmo(Weapon_5_PriClip_Value, pkvWeapon_5_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_5_SecClip_Value, pkvWeapon_5_SecClipAmmo_Value);
+
+					//Give our player the Weapon_6 slots.
+					GiveNamedItem((pkvWeapon_6_Value));
+					CBasePlayer::GiveAmmo(Weapon_6_PriClip_Value, pkvWeapon_6_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_6_SecClip_Value, pkvWeapon_6_SecClipAmmo_Value);
+
+					//Give our player the Weapon_7 slots.
+					GiveNamedItem((pkvWeapon_7_Value));
+					CBasePlayer::GiveAmmo(Weapon_7_PriClip_Value, pkvWeapon_7_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_7_SecClip_Value, pkvWeapon_7_SecClipAmmo_Value);
+
+					//Give our player the Weapon_8 slots.
+					GiveNamedItem((pkvWeapon_8_Value));
+					CBasePlayer::GiveAmmo(Weapon_8_PriClip_Value, pkvWeapon_8_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_8_SecClip_Value, pkvWeapon_8_SecClipAmmo_Value);
+
+					//Give our player the Weapon_9 slots.
+					GiveNamedItem((pkvWeapon_9_Value));
+					CBasePlayer::GiveAmmo(Weapon_9_PriClip_Value, pkvWeapon_9_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_9_SecClip_Value, pkvWeapon_9_SecClipAmmo_Value);
+
+					//Give our player the Weapon_10 slots.
+					GiveNamedItem((pkvWeapon_10_Value));
+					CBasePlayer::GiveAmmo(Weapon_10_PriClip_Value, pkvWeapon_10_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_10_SecClip_Value, pkvWeapon_10_SecClipAmmo_Value);
+
+					//Give our player the Weapon_11 slots.
+					GiveNamedItem((pkvWeapon_11_Value));
+					CBasePlayer::GiveAmmo(Weapon_11_PriClip_Value, pkvWeapon_11_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_11_SecClip_Value, pkvWeapon_11_SecClipAmmo_Value);
+
+					//Give our player the Weapon_12 slots.
+					GiveNamedItem((pkvWeapon_12_Value));
+					CBasePlayer::GiveAmmo(Weapon_12_PriClip_Value, pkvWeapon_12_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_12_SecClip_Value, pkvWeapon_12_SecClipAmmo_Value);
+
+					//Now that our player has weapons, switch them to their last held weapon
+					Weapon_Switch(Weapon_OwnsThisType(pkvActiveWep_Value));
+
+					m_iHealth = PlayerHealthValue;
+					m_iMaxHealth = 80;
+					SetArmorValue(PlayerArmourValue);
+					SetMaxArmorValue(0);
+					CBasePlayer::SetWalkSpeed(150);
+					CBasePlayer::SetNormSpeed(190);
+					CBasePlayer::SetSprintSpeed(320);
+					CBasePlayer::SetJumpHeight(100.0);
+
+					//SecobMod__Information This allows you to use filtering while mapping. Such as only a trigger one class may actually trigger. Thanks to Alters for providing this fix.				
+					CBasePlayer::KeyValue("targetname", "Medic");
+					SetModel("models/sdk/Humans/Group03/male_05.mdl");
+
+					//SecobMod__Information Due to the way our player classes now work, the first spawn of any class has to teleport to their specific player start.
+					CBaseEntity* pEntity = NULL;
+					Vector pEntityOrigin;
+					pEntity = gEntList.FindEntityByClassnameNearest("info_player_medic", pEntityOrigin, 0);
+					if (pEntity != NULL)
+					{
+						pEntityOrigin = pEntity->GetAbsOrigin();
+						SetAbsOrigin(pEntityOrigin);
+					}
+					//PlayerClass bug fix.
+					EquipSuit();
+					StartSprinting();
+					StopSprinting();
+					EquipSuit(false);
+				}
+				else if (PlayerClassValue == 4)
+				{
+					m_iCurrentClass = 4;
+					m_iClientClass = m_iCurrentClass;
+					ForceHUDReload(pPlayer);
+					Msg("Respawning...\n");
+					PlayerCanChangeClass = false;
+					RemoveAllItems(true);
+
+					//Give our player the Weapon_0 slots.
+					Msg("Weapon is %s\n", pkvWeapon_0_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_0_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_0_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_0_Value));
+					CBasePlayer::GiveAmmo(Weapon_0_PriClip_Value, pkvWeapon_0_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_0_SecClip_Value, pkvWeapon_0_SecClipAmmo_Value);
+
+					//Give our player the Weapon_1 slots.
+					Msg("Weapon is %s\n", pkvWeapon_1_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_1_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_1_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_1_Value));
+					CBasePlayer::GiveAmmo(Weapon_1_PriClip_Value, pkvWeapon_1_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_1_SecClip_Value, pkvWeapon_1_SecClipAmmo_Value);
+
+					//Give our player the Weapon_2 slots.
+					Msg("Weapon is %s\n", pkvWeapon_2_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_2_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_2_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_2_Value));
+					CBasePlayer::GiveAmmo(Weapon_2_PriClip_Value, pkvWeapon_2_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_2_SecClip_Value, pkvWeapon_2_SecClipAmmo_Value);
+
+					//Give our player the Weapon_3 slots.
+					Msg("Weapon is %s\n", pkvWeapon_3_Value);
+					Msg("Weapon ammo count is %i\n", Weapon_3_PriClip_Value);
+					Msg("Weapon ammo type is %s\n", pkvWeapon_3_PriClipAmmo_Value);
+					GiveNamedItem((pkvWeapon_3_Value));
+					CBasePlayer::GiveAmmo(Weapon_3_PriClip_Value, pkvWeapon_3_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_3_SecClip_Value, pkvWeapon_3_SecClipAmmo_Value);
+
+					//Give our player the Weapon_4 slots.
+					GiveNamedItem((pkvWeapon_4_Value));
+					CBasePlayer::GiveAmmo(Weapon_4_PriClip_Value, pkvWeapon_4_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_4_SecClip_Value, pkvWeapon_4_SecClipAmmo_Value);
+
+					//Give our player the Weapon_5 slots.
+					GiveNamedItem((pkvWeapon_5_Value));
+					CBasePlayer::GiveAmmo(Weapon_5_PriClip_Value, pkvWeapon_5_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_5_SecClip_Value, pkvWeapon_5_SecClipAmmo_Value);
+
+					//Give our player the Weapon_6 slots.
+					GiveNamedItem((pkvWeapon_6_Value));
+					CBasePlayer::GiveAmmo(Weapon_6_PriClip_Value, pkvWeapon_6_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_6_SecClip_Value, pkvWeapon_6_SecClipAmmo_Value);
+
+					//Give our player the Weapon_7 slots.
+					GiveNamedItem((pkvWeapon_7_Value));
+					CBasePlayer::GiveAmmo(Weapon_7_PriClip_Value, pkvWeapon_7_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_7_SecClip_Value, pkvWeapon_7_SecClipAmmo_Value);
+
+					//Give our player the Weapon_8 slots.
+					GiveNamedItem((pkvWeapon_8_Value));
+					CBasePlayer::GiveAmmo(Weapon_8_PriClip_Value, pkvWeapon_8_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_8_SecClip_Value, pkvWeapon_8_SecClipAmmo_Value);
+
+					//Give our player the Weapon_9 slots.
+					GiveNamedItem((pkvWeapon_9_Value));
+					CBasePlayer::GiveAmmo(Weapon_9_PriClip_Value, pkvWeapon_9_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_9_SecClip_Value, pkvWeapon_9_SecClipAmmo_Value);
+
+					//Give our player the Weapon_10 slots.
+					GiveNamedItem((pkvWeapon_10_Value));
+					CBasePlayer::GiveAmmo(Weapon_10_PriClip_Value, pkvWeapon_10_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_10_SecClip_Value, pkvWeapon_10_SecClipAmmo_Value);
+
+					//Give our player the Weapon_11 slots.
+					GiveNamedItem((pkvWeapon_11_Value));
+					CBasePlayer::GiveAmmo(Weapon_11_PriClip_Value, pkvWeapon_11_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_11_SecClip_Value, pkvWeapon_11_SecClipAmmo_Value);
+
+					//Give our player the Weapon_12 slots.
+					GiveNamedItem((pkvWeapon_12_Value));
+					CBasePlayer::GiveAmmo(Weapon_12_PriClip_Value, pkvWeapon_12_PriClipAmmo_Value);
+					CBasePlayer::GiveAmmo(Weapon_12_SecClip_Value, pkvWeapon_12_SecClipAmmo_Value);
+
+					//Now that our player has weapons, switch them to their last held weapon
+					Weapon_Switch(Weapon_OwnsThisType(pkvActiveWep_Value));
+
+					m_iHealth = PlayerHealthValue;
+					m_iMaxHealth = 150;
+					SetArmorValue(PlayerArmourValue);
+					SetMaxArmorValue(200);
+					CBasePlayer::SetWalkSpeed(150);
+					CBasePlayer::SetNormSpeed(190);
+					CBasePlayer::SetSprintSpeed(320);
+					CBasePlayer::SetJumpHeight(40.0);
+
+					//SecobMod__Information  This allows you to use filtering while mapping. Such as only a trigger one class may actually trigger. Thanks to Alters for providing this fix.				
+					CBasePlayer::KeyValue("targetname", "Heavy");
+					SetModel("models/sdk/Humans/Group03/police_05.mdl");
+
+					//SecobMod__Information  Due to the way our player classes now work, the first spawn of any class has to teleport to their specific player start.
+					CBaseEntity* pEntity = NULL;
+					Vector pEntityOrigin;
+					pEntity = gEntList.FindEntityByClassnameNearest("info_player_heavy", pEntityOrigin, 0);
+					if (pEntity != NULL)
+					{
+						pEntityOrigin = pEntity->GetAbsOrigin();
+						SetAbsOrigin(pEntityOrigin);
+					}
+					//PlayerClass bug fix.
+					//Heavy class has the suit so we don't set it to false like the other classes.
+					EquipSuit();
+					StartSprinting();
+					StopSprinting();
+				}
+				else
+				{
+					//ShowViewPortPanel( PANEL_CLASS, true, NULL );
+				}
+
+			}
+#endif //SecobMod__USE_PLAYERCLASSES
+
+#ifndef SecobMod__USE_PLAYERCLASSES
+			if (pszSteamID)
+			{
+
+				//Set ints for the class,health and armour.
+				int PlayerHealthValue = pkvHealth->GetInt();
+
+				//Armour.
+				int PlayerArmourValue = pkvArmour->GetInt();
+
+				//CurrentWeapon
+				const char* pkvActiveWep_Value = pkvActiveWep->GetString();
+
+				//Set String and Ints for Weapon_0
+				const char* pkvWeapon_0_Value = pkvWeapon_0->GetString();
+				int Weapon_0_PriClip_Value = pkvWeapon_0_PriClip->GetInt();
+				const char* pkvWeapon_0_PriClipAmmo_Value = pkvWeapon_0_PriClipAmmo->GetString();
+				int Weapon_0_SecClip_Value = pkvWeapon_0_SecClip->GetInt();
+				const char* pkvWeapon_0_SecClipAmmo_Value = pkvWeapon_0_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_1
+				const char* pkvWeapon_1_Value = pkvWeapon_1->GetString();
+				int Weapon_1_PriClip_Value = pkvWeapon_1_PriClip->GetInt();
+				const char* pkvWeapon_1_PriClipAmmo_Value = pkvWeapon_1_PriClipAmmo->GetString();
+				int Weapon_1_SecClip_Value = pkvWeapon_1_SecClip->GetInt();
+				const char* pkvWeapon_1_SecClipAmmo_Value = pkvWeapon_1_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_2
+				const char* pkvWeapon_2_Value = pkvWeapon_2->GetString();
+				int Weapon_2_PriClip_Value = pkvWeapon_2_PriClip->GetInt();
+				const char* pkvWeapon_2_PriClipAmmo_Value = pkvWeapon_2_PriClipAmmo->GetString();
+				int Weapon_2_SecClip_Value = pkvWeapon_2_SecClip->GetInt();
+				const char* pkvWeapon_2_SecClipAmmo_Value = pkvWeapon_2_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_3
+				const char* pkvWeapon_3_Value = pkvWeapon_3->GetString();
+				int Weapon_3_PriClip_Value = pkvWeapon_3_PriClip->GetInt();
+				const char* pkvWeapon_3_PriClipAmmo_Value = pkvWeapon_3_PriClipAmmo->GetString();
+				int Weapon_3_SecClip_Value = pkvWeapon_3_SecClip->GetInt();
+				const char* pkvWeapon_3_SecClipAmmo_Value = pkvWeapon_3_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_4
+				const char* pkvWeapon_4_Value = pkvWeapon_4->GetString();
+				int Weapon_4_PriClip_Value = pkvWeapon_4_PriClip->GetInt();
+				const char* pkvWeapon_4_PriClipAmmo_Value = pkvWeapon_4_PriClipAmmo->GetString();
+				int Weapon_4_SecClip_Value = pkvWeapon_4_SecClip->GetInt();
+				const char* pkvWeapon_4_SecClipAmmo_Value = pkvWeapon_4_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_5
+				const char* pkvWeapon_5_Value = pkvWeapon_5->GetString();
+				int Weapon_5_PriClip_Value = pkvWeapon_5_PriClip->GetInt();
+				const char* pkvWeapon_5_PriClipAmmo_Value = pkvWeapon_5_PriClipAmmo->GetString();
+				int Weapon_5_SecClip_Value = pkvWeapon_5_SecClip->GetInt();
+				const char* pkvWeapon_5_SecClipAmmo_Value = pkvWeapon_5_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_6
+				const char* pkvWeapon_6_Value = pkvWeapon_6->GetString();
+				int Weapon_6_PriClip_Value = pkvWeapon_6_PriClip->GetInt();
+				const char* pkvWeapon_6_PriClipAmmo_Value = pkvWeapon_6_PriClipAmmo->GetString();
+				int Weapon_6_SecClip_Value = pkvWeapon_6_SecClip->GetInt();
+				const char* pkvWeapon_6_SecClipAmmo_Value = pkvWeapon_6_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_7
+				const char* pkvWeapon_7_Value = pkvWeapon_7->GetString();
+				int Weapon_7_PriClip_Value = pkvWeapon_7_PriClip->GetInt();
+				const char* pkvWeapon_7_PriClipAmmo_Value = pkvWeapon_7_PriClipAmmo->GetString();
+				int Weapon_7_SecClip_Value = pkvWeapon_7_SecClip->GetInt();
+				const char* pkvWeapon_7_SecClipAmmo_Value = pkvWeapon_7_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_8
+				const char* pkvWeapon_8_Value = pkvWeapon_8->GetString();
+				int Weapon_8_PriClip_Value = pkvWeapon_8_PriClip->GetInt();
+				const char* pkvWeapon_8_PriClipAmmo_Value = pkvWeapon_8_PriClipAmmo->GetString();
+				int Weapon_8_SecClip_Value = pkvWeapon_8_SecClip->GetInt();
+				const char* pkvWeapon_8_SecClipAmmo_Value = pkvWeapon_8_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_9
+				const char* pkvWeapon_9_Value = pkvWeapon_9->GetString();
+				int Weapon_9_PriClip_Value = pkvWeapon_9_PriClip->GetInt();
+				const char* pkvWeapon_9_PriClipAmmo_Value = pkvWeapon_9_PriClipAmmo->GetString();
+				int Weapon_9_SecClip_Value = pkvWeapon_9_SecClip->GetInt();
+				const char* pkvWeapon_9_SecClipAmmo_Value = pkvWeapon_9_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_10
+				const char* pkvWeapon_10_Value = pkvWeapon_10->GetString();
+				int Weapon_10_PriClip_Value = pkvWeapon_10_PriClip->GetInt();
+				const char* pkvWeapon_10_PriClipAmmo_Value = pkvWeapon_10_PriClipAmmo->GetString();
+				int Weapon_10_SecClip_Value = pkvWeapon_10_SecClip->GetInt();
+				const char* pkvWeapon_10_SecClipAmmo_Value = pkvWeapon_10_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_11
+				const char* pkvWeapon_11_Value = pkvWeapon_11->GetString();
+				int Weapon_11_PriClip_Value = pkvWeapon_11_PriClip->GetInt();
+				const char* pkvWeapon_11_PriClipAmmo_Value = pkvWeapon_11_PriClipAmmo->GetString();
+				int Weapon_11_SecClip_Value = pkvWeapon_11_SecClip->GetInt();
+				const char* pkvWeapon_11_SecClipAmmo_Value = pkvWeapon_11_SecClipAmmo->GetString();
+
+				//Set String and Ints for Weapon_12
+				const char* pkvWeapon_12_Value = pkvWeapon_12->GetString();
+				int Weapon_12_PriClip_Value = pkvWeapon_12_PriClip->GetInt();
+				const char* pkvWeapon_12_PriClipAmmo_Value = pkvWeapon_12_PriClipAmmo->GetString();
+				int Weapon_12_SecClip_Value = pkvWeapon_12_SecClip->GetInt();
+				const char* pkvWeapon_12_SecClipAmmo_Value = pkvWeapon_12_SecClipAmmo->GetString();
+
+
+				//============================================================================================
+
+				Msg("Respawning...\n");
+				RemoveAllItems(true);
+
+				//Give our player the Weapon_0 slots.
+				Msg("Weapon is %s\n", pkvWeapon_0_Value);
+				Msg("Weapon ammo count is %i\n", Weapon_0_PriClip_Value);
+				Msg("Weapon ammo type is %s\n", pkvWeapon_0_PriClipAmmo_Value);
+				GiveNamedItem((pkvWeapon_0_Value));
+				CBasePlayer::GiveAmmo(Weapon_0_PriClip_Value, pkvWeapon_0_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_0_SecClip_Value, pkvWeapon_0_SecClipAmmo_Value);
+
+				//Give our player the Weapon_1 slots.
+				Msg("Weapon is %s\n", pkvWeapon_1_Value);
+				Msg("Weapon ammo count is %i\n", Weapon_1_PriClip_Value);
+				Msg("Weapon ammo type is %s\n", pkvWeapon_1_PriClipAmmo_Value);
+				GiveNamedItem((pkvWeapon_1_Value));
+				CBasePlayer::GiveAmmo(Weapon_1_PriClip_Value, pkvWeapon_1_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_1_SecClip_Value, pkvWeapon_1_SecClipAmmo_Value);
+
+				//Give our player the Weapon_2 slots.
+				Msg("Weapon is %s\n", pkvWeapon_2_Value);
+				Msg("Weapon ammo count is %i\n", Weapon_2_PriClip_Value);
+				Msg("Weapon ammo type is %s\n", pkvWeapon_2_PriClipAmmo_Value);
+				GiveNamedItem((pkvWeapon_2_Value));
+				CBasePlayer::GiveAmmo(Weapon_2_PriClip_Value, pkvWeapon_2_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_2_SecClip_Value, pkvWeapon_2_SecClipAmmo_Value);
+
+				//Give our player the Weapon_3 slots.
+				Msg("Weapon is %s\n", pkvWeapon_3_Value);
+				Msg("Weapon ammo count is %i\n", Weapon_3_PriClip_Value);
+				Msg("Weapon ammo type is %s\n", pkvWeapon_3_PriClipAmmo_Value);
+				GiveNamedItem((pkvWeapon_3_Value));
+				CBasePlayer::GiveAmmo(Weapon_3_PriClip_Value, pkvWeapon_3_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_3_SecClip_Value, pkvWeapon_3_SecClipAmmo_Value);
+
+				//Give our player the Weapon_4 slots.
+				GiveNamedItem((pkvWeapon_4_Value));
+				CBasePlayer::GiveAmmo(Weapon_4_PriClip_Value, pkvWeapon_4_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_4_SecClip_Value, pkvWeapon_4_SecClipAmmo_Value);
+
+				//Give our player the Weapon_5 slots.
+				GiveNamedItem((pkvWeapon_5_Value));
+				CBasePlayer::GiveAmmo(Weapon_5_PriClip_Value, pkvWeapon_5_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_5_SecClip_Value, pkvWeapon_5_SecClipAmmo_Value);
+
+				//Give our player the Weapon_6 slots.
+				GiveNamedItem((pkvWeapon_6_Value));
+				CBasePlayer::GiveAmmo(Weapon_6_PriClip_Value, pkvWeapon_6_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_6_SecClip_Value, pkvWeapon_6_SecClipAmmo_Value);
+
+				//Give our player the Weapon_7 slots.
+				GiveNamedItem((pkvWeapon_7_Value));
+				CBasePlayer::GiveAmmo(Weapon_7_PriClip_Value, pkvWeapon_7_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_7_SecClip_Value, pkvWeapon_7_SecClipAmmo_Value);
+
+				//Give our player the Weapon_8 slots.
+				GiveNamedItem((pkvWeapon_8_Value));
+				CBasePlayer::GiveAmmo(Weapon_8_PriClip_Value, pkvWeapon_8_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_8_SecClip_Value, pkvWeapon_8_SecClipAmmo_Value);
+
+				//Give our player the Weapon_9 slots.
+				GiveNamedItem((pkvWeapon_9_Value));
+				CBasePlayer::GiveAmmo(Weapon_9_PriClip_Value, pkvWeapon_9_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_9_SecClip_Value, pkvWeapon_9_SecClipAmmo_Value);
+
+				//Give our player the Weapon_10 slots.
+				GiveNamedItem((pkvWeapon_10_Value));
+				CBasePlayer::GiveAmmo(Weapon_10_PriClip_Value, pkvWeapon_10_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_10_SecClip_Value, pkvWeapon_10_SecClipAmmo_Value);
+
+				//Give our player the Weapon_11 slots.
+				GiveNamedItem((pkvWeapon_11_Value));
+				CBasePlayer::GiveAmmo(Weapon_11_PriClip_Value, pkvWeapon_11_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_11_SecClip_Value, pkvWeapon_11_SecClipAmmo_Value);
+
+				//Give our player the Weapon_12 slots.
+				GiveNamedItem((pkvWeapon_12_Value));
+				CBasePlayer::GiveAmmo(Weapon_12_PriClip_Value, pkvWeapon_12_PriClipAmmo_Value);
+				CBasePlayer::GiveAmmo(Weapon_12_SecClip_Value, pkvWeapon_12_SecClipAmmo_Value);
+
+				//Now that our player has weapons, switch them to their last held weapon
+				Weapon_Switch(Weapon_OwnsThisType(pkvActiveWep_Value));
+
+				m_iHealth = PlayerHealthValue;
+				//m_iMaxHealth = 125;
+
+				SetArmorValue(PlayerArmourValue);
+
+				// SetModel("models/sdk/Humans/Group03/male_06_sdk.mdl");
+
+				//PlayerClass bug fix.
+				EquipSuit();
+				StartSprinting();
+				StopSprinting();
+				EquipSuit(false);
+			}
+			else
+			{
+			}
+#endif //NOT SecobMod__USE_PLAYERCLASSES
+
+			// Transitioned = false;
+			break;
+			//pkvTransitionRestoreFile = pkvTransitionRestoreFile->GetNextKey();
+		//  }
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+// Purpose :
+// Input   :
+// Output  :
+//------------------------------------------------------------------------------
+bool CHL2_Player::WantsLagCompensationOnEntity( const CBasePlayer* pPlayer, const CUserCmd* pCmd, const CBitVec<MAX_EDICTS>* pEntityTransmitBits ) const
+{
+	// No need to lag compensate at all if we're not attacking in this command and
+	// we haven't attacked recently.
+	//if (!(pCmd->buttons & IN_ATTACK) && (pCmd->command_number - m_iLastWeaponFireUsercmd > 5))
+	if ( !( pCmd->buttons & IN_ATTACK ) )
+		return false;
+
+	// If this entity hasn't been transmitted to us and acked, then don't bother lag compensating it.
+	if ( pEntityTransmitBits && !pEntityTransmitBits->Get( pPlayer->entindex() ) )
+		return false;
+
+	const Vector& vMyOrigin = GetAbsOrigin();
+	const Vector& vHisOrigin = pPlayer->GetAbsOrigin();
+
+	// get max distance player could have moved within max lag compensation time, 
+	// multiply by 1.5 to to avoid "dead zones"  (sqrt(2) would be the exact value)
+	float maxDistance = 1.5 * pPlayer->MaxSpeed() * sv_maxunlag.GetFloat();
+
+	// If the player is within this distance, lag compensate them in case they're running past us.
+	if ( vHisOrigin.DistTo( vMyOrigin) < maxDistance )
+		return true;
+
+	// If their origin is not within a 45 degree cone in front of us, no need to lag compensate.
+	Vector vForward;
+	AngleVectors( pCmd->viewangles, &vForward );
+
+	Vector vDiff = vHisOrigin - vMyOrigin;
+	VectorNormalize( vDiff );
+
+	float flCosAngle = 0.707107f;	// 45 degree angle
+	if ( vForward.Dot( vDiff) < flCosAngle )
+		return false;
+
+	return true;
+}
+#endif // SDK2013CE_SAVERESTORE
+
 //------------------------------------------------------------------------------
 // Purpose :
 // Input   :
@@ -1108,10 +2267,10 @@ void CHL2_Player::PlayerRunCommand(CUserCmd *ucmd, IMoveHelper *moveHelper)
 //-----------------------------------------------------------------------------
 void CHL2_Player::Spawn(void)
 {
-
 #ifndef HL2MP
 #ifndef PORTAL
-	SetModel( "models/player.mdl" );
+	//SetModel( "models/player.mdl" );
+	//SetModel( "models/humans/group03/male_01.mdl" );
 #endif
 #endif
 
@@ -1142,6 +2301,26 @@ void CHL2_Player::Spawn(void)
 	GetPlayerProxy();
 
 	SetFlashlightPowerDrainScale( 1.0f );
+
+#ifdef SDK2013CE_SAVERESTORE
+	LoadTransitionFile();
+
+	m_lifeState = LIFE_ALIVE;  // hopefully fixes it?
+	pl.deadflag = false;
+
+	// basically you can't take damage from npc's unless you remove this solid flag
+	// the ones after this, idfk, might fix some other stuff
+	RemoveSolidFlags( FSOLID_NOT_SOLID );
+
+	RemoveEffects( EF_NODRAW );
+	SetNumAnimOverlays( 3 );
+	AddFlag( FL_ONGROUND );
+	RemoveFlag( FL_FROZEN );
+
+	m_Local.m_bDucked = false;
+
+	SetPlayerUnderwater( false );
+#endif // SDK2013CE_SAVERESTORE
 }
 
 //-----------------------------------------------------------------------------
@@ -1215,7 +2394,7 @@ void CHL2_Player::StartSprinting( void )
 	filter.UsePredictionRules();
 	EmitSound( filter, entindex(), "HL2Player.SprintStart" );
 
-	SetMaxSpeed( HL2_SPRINT_SPEED );
+	SetMaxSpeed( hl2_sprintspeed.GetFloat() );
 	m_fIsSprinting = true;
 }
 
@@ -1231,11 +2410,11 @@ void CHL2_Player::StopSprinting( void )
 
 	if( IsSuitEquipped() )
 	{
-		SetMaxSpeed( HL2_NORM_SPEED );
+		SetMaxSpeed( hl2_normspeed.GetFloat() );
 	}
 	else
 	{
-		SetMaxSpeed( HL2_WALK_SPEED );
+		SetMaxSpeed( hl2_walkspeed.GetFloat() );
 	}
 
 	m_fIsSprinting = false;
@@ -1267,7 +2446,7 @@ void CHL2_Player::EnableSprint( bool bEnable )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartWalking( void )
 {
-	SetMaxSpeed( HL2_WALK_SPEED );
+	SetMaxSpeed( hl2_walkspeed.GetFloat() );
 	m_fIsWalking = true;
 }
 
@@ -1275,7 +2454,7 @@ void CHL2_Player::StartWalking( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopWalking( void )
 {
-	SetMaxSpeed( HL2_NORM_SPEED );
+	SetMaxSpeed( hl2_normspeed.GetFloat() );
 	m_fIsWalking = false;
 }
 
@@ -2205,6 +3384,54 @@ void CHL2_Player::InputDisableFlashlight( inputdata_t &inputdata )
 		FlashlightTurnOff();
 
 	SetFlashlightEnabled( false );
+}
+
+void CHL2_Player::SetPlayerModel( void )
+{
+	const char *szModelName = NULL;
+	const char *pszCurrentModelName = modelinfo->GetModelName( GetModel());
+
+	szModelName = engine->GetClientConVarValue( engine->IndexOfEdict( edict() ), "cl_playermodel" );
+
+	if ( ValidatePlayerModel( szModelName ) == false )
+	{
+		char szReturnString[512];
+
+		Q_snprintf( szReturnString, sizeof (szReturnString ), "cl_playermodel %s\n", pszCurrentModelName );
+		engine->ClientCommand ( edict(), szReturnString );
+
+		szModelName = pszCurrentModelName;
+	}
+
+	int nHeads = ARRAYSIZE( g_ppszRandomCitizenModels );
+
+	g_iLastCitizenModel = ( g_iLastCitizenModel + 1 ) % nHeads;
+	szModelName = g_ppszRandomCitizenModels[g_iLastCitizenModel];
+
+	int modelIndex = modelinfo->GetModelIndex( szModelName );
+
+	if ( modelIndex == -1 )
+	{
+		char szReturnString[512];
+
+		Q_snprintf( szReturnString, sizeof (szReturnString ), "cl_playermodel %s\n", szModelName );
+		engine->ClientCommand ( edict(), szReturnString );
+	}
+
+	SetModel( szModelName );
+}
+
+bool CHL2_Player::ValidatePlayerModel( const char *pModel )
+{
+	for ( int i = 0; i < ARRAYSIZE( g_ppszRandomCitizenModels ); ++i )
+	{
+		if ( !Q_stricmp( g_ppszRandomCitizenModels[i], pModel ) )
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 //-----------------------------------------------------------------------------

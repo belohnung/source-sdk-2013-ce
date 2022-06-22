@@ -752,6 +752,13 @@ void CServerGameDLL::PostInit()
 
 void CServerGameDLL::DLLShutdown( void )
 {
+#ifdef SDK2013CE_SAVERESTORE
+	// Clear the transition file.
+	FileHandle_t hFile = g_pFullFileSystem->Open( "cfg/transition.cfg", "w" );
+	CUtlBuffer buf( 0, 0, CUtlBuffer::TEXT_BUFFER );
+	g_pFullFileSystem->WriteFile( "cfg/transition.cfg", "MOD", buf );
+	g_pFullFileSystem->Close( hFile );
+#endif // SDK2013CE_SAVERESTORE
 
 	// Due to dependencies, these are not autogamesystems
 	ModelSoundsCacheShutdown();
@@ -2704,6 +2711,29 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 				g_pGameRules->ClientDisconnected( pEdict );
 				gamestats->Event_PlayerDisconnected( player );
 			}
+
+#ifdef SDK2013CE_SAVERESTORE
+			// If a client disconnects wipe them from the transition file.
+			// Note that if you want it so people who lag out can rejoin instantly without picking a class, then comment all this section out.
+			KeyValues* pkvTransitionRestoreFile = new KeyValues( "cfg/transition.cfg" );
+			if ( pkvTransitionRestoreFile->LoadFromFile( filesystem, "cfg/transition.cfg" ) )
+			{
+				while ( pkvTransitionRestoreFile )
+				{
+					const char* pszSteamID = pkvTransitionRestoreFile->GetName(); // Gets our header, which we use the players SteamID for.
+					const char* PlayerSteamID = engine->GetPlayerNetworkIDString( player->edict() ); // Finds the current players Steam ID.	
+
+					if ( Q_strcmp( PlayerSteamID, pszSteamID ) != 0 )
+					{
+						break;
+					}
+					KeyValues* pkvNULL = pkvTransitionRestoreFile->FindKey( pszSteamID );
+					pkvNULL->deleteThis();
+					pkvTransitionRestoreFile->SaveToFile( filesystem, "cfg/transition.cfg" );
+					break;
+				}
+			}
+#endif // SDK2013CE_SAVERESTORE
 		}
 
 		// Make sure all Untouch()'s are called for this client leaving

@@ -68,6 +68,8 @@ IMPLEMENT_NETWORKCLASS_ALIASED( HalfLife2Proxy, DT_HalfLife2Proxy )
 	END_SEND_TABLE()
 #endif
 
+ConVar sv_report_client_settings( "sv_report_client_settings", "0", FCVAR_GAMEDLL | FCVAR_NOTIFY );
+
 ConVar  physcannon_mega_enabled( "physcannon_mega_enabled", "0", FCVAR_CHEAT | FCVAR_REPLICATED );
 
 // Controls the application of the robus radius damage model.
@@ -1340,6 +1342,39 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		}
 	}
 
+	void CHalfLife2::ClientSettingsChanged( CBasePlayer* pPlayer )
+	{
+#ifndef CLIENT_DLL
+	
+		CHL2_Player *pHL2Player = dynamic_cast<CHL2_Player*>( pPlayer );
+
+		if ( pHL2Player == NULL )
+			return;
+
+		const char *pCurrentModel = modelinfo->GetModelName( pPlayer->GetModel() );
+		const char *szModelName = engine->GetClientConVarValue( engine->IndexOfEdict( pPlayer->edict() ), "cl_playermodel" );
+
+		//If we're different.
+		if ( stricmp( szModelName, pCurrentModel ) )
+		{
+			pHL2Player->SetPlayerModel();
+
+			const char *pszCurrentModelName = modelinfo->GetModelName( pHL2Player->GetModel() );
+
+			char szReturnString[128];
+			Q_snprintf( szReturnString, sizeof( szReturnString ), "Your player model is: %s\n", pszCurrentModelName );
+
+			ClientPrint( pHL2Player, HUD_PRINTTALK, szReturnString );
+		}
+		if ( sv_report_client_settings.GetInt() == 1 )
+		{
+			UTIL_LogPrintf( "\"%s\" cl_cmdrate = \"%s\"\n", pHL2Player->GetPlayerName(), engine->GetClientConVarValue( pHL2Player->entindex(), "cl_cmdrate" ));
+		}
+
+		BaseClass::ClientSettingsChanged( pPlayer );
+#endif
+	}
+
 	//-----------------------------------------------------------------------------
 	// Purpose: Returns how much damage the given ammo type should do to the victim
 	//			when fired by the attacker.
@@ -1400,10 +1435,19 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		{
 			// A physics object has struck a player ally. Don't allow damage if it
 			// came from the player's physcannon. 
+#ifndef SDK2013CE_SAVERESTORE
 			CBasePlayer *pPlayer = UTIL_PlayerByIndex(1);
 
 			if( pPlayer )
 			{
+#else
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer* pPlayer = UTIL_PlayerByIndex( i );
+				if ( !pPlayer )
+					continue;
+#endif // !SDK2013CE_SAVERESTORE
+			
 				CBaseEntity *pWeapon = pPlayer->HasNamedPlayerItem("weapon_physcannon");
 
 				if( pWeapon )

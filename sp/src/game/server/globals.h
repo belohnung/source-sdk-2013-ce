@@ -15,6 +15,8 @@ extern Vector g_vecAttackDir;
 extern int g_iSkillLevel;
 extern bool g_fGameOver;
 extern ConVar g_Language;
-
+#ifdef SDK2013CE_SAVERESTORE
+extern bool	g_transitioned;
+#endif // SDK2013CE_SAVERESTORE
 
 #endif // GLOBALS_H

@@ -38,6 +38,8 @@ BEGIN_PREDICTION_DATA( C_BaseHLPlayer )
 	DEFINE_PRED_FIELD( m_fIsSprinting, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
 END_PREDICTION_DATA()
 
+static ConVar cl_playermodel( "cl_playermodel", "none", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Default Player Model" );
+
 //-----------------------------------------------------------------------------
 // Purpose: Drops player's primary weapon
 //-----------------------------------------------------------------------------

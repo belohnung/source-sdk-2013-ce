@@ -256,6 +256,12 @@ BEGIN_DATADESC( CBasePlayer )
 #if defined USES_ECON_ITEMS
 	DEFINE_EMBEDDED( m_AttributeList ),
 #endif
+
+#ifdef SDK2013CE_SAVERESTORE
+	DEFINE_FIELD( m_bTransition, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_bTransitionTeleported, FIELD_BOOLEAN ),
+#endif // SDK2013CE_SAVERESTORE
+
 	DEFINE_UTLVECTOR( m_hTriggerSoundscapeList, FIELD_EHANDLE ),
 	DEFINE_EMBEDDED( pl ),
 
@@ -549,6 +555,11 @@ CBasePlayer *CBasePlayer::CreatePlayer( const char *className, edict_t *ed )
 CBasePlayer::CBasePlayer( )
 {
 	AddEFlags( EFL_NO_AUTO_EDICT_ATTACH );
+
+#ifdef SDK2013CE_SAVERESTORE
+	m_bTransition = false;
+	m_bTransitionTeleported = false;
+#endif // SDK2013CE_SAVERESTORE
 
 #ifdef _DEBUG
 	m_vecAutoAim.Init();

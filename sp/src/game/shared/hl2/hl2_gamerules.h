@@ -63,6 +63,7 @@ private:
 	virtual ~CHalfLife2() {}
 
 	virtual void			Think( void );
+	virtual void			ClientSettingsChanged( CBasePlayer* pPlayer );
 
 	virtual bool			ClientCommand( CBaseEntity *pEdict, const CCommand &args );
 	virtual void			PlayerSpawn( CBasePlayer *pPlayer );
