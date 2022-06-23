@@ -147,6 +147,10 @@
 #include "fbxsystem/fbxsystem.h"
 #endif
 
+#ifdef SDK2013CE
+#include "irichpresenceclient.h"
+#endif
+
 extern vgui::IInputInternal *g_InputInternal;
 
 //=============================================================================
@@ -1590,6 +1594,13 @@ void CHLClient::LevelInitPreEntity( char const* pMapName )
 	view->LevelInit();
 	tempents->LevelInit();
 	ResetToneMapping(1.0);
+
+#ifdef SDK2013CE
+	if ( rpc )
+	{
+		rpc->SetLevelName( pMapName );
+	}
+#endif
 
 	IGameSystem::LevelInitPreEntityAllSystems(pMapName);
 
