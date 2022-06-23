@@ -187,7 +187,8 @@ void CSDK2013CEDiscordPresence::LevelInitPostEntity( void )
 	m_Activity.GetAssets().SetLargeImage( GetMapImage( "sdk2013ce" ) );
 	m_Activity.GetAssets().SetLargeText( "Community Made" );
 
-	if ( engine->IsConnected() && g_pGameRules->IsMultiplayer() )
+	// TODO: Fix bug with partyId "secrets must be unique"
+	/*if ( engine->IsConnected() && g_pGameRules->IsMultiplayer() )
 	{
 		INetChannelInfo *ni = engine->GetNetChannelInfo();
 		if ( ni && ni->GetAddress() && ni->GetName() )
@@ -198,7 +199,7 @@ void CSDK2013CEDiscordPresence::LevelInitPostEntity( void )
 			m_Activity.GetSecrets().SetJoin((ni->GetAddress()));
 			m_Activity.GetSecrets().SetSpectate((ni->GetAddress()));
 		}
-	}
+	}*/
 
 	m_Activity.SetDetails( m_szHostName );
 	m_Activity.SetState( szGameState );

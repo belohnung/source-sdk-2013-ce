@@ -124,7 +124,6 @@ bool CBaseDiscordPresence::GetSupportsPresence( void )
 //-----------------------------------------------------------------------------
 char const *CBaseDiscordPresence::GetMapImage( char const *defaultMapIcon )
 {
-	// TODO: Figure out how this works
 	KeyValues *pDiscordRPC = new KeyValues( "Discord" );
 	pDiscordRPC->LoadFromFile( filesystem, "scripts/discord_presence.txt" );
 	if ( pDiscordRPC )
