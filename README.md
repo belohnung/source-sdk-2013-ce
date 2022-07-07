@@ -15,8 +15,8 @@ Source Modding Community server, which you can join [here](https://discord.gg/BD
 
 # Requirements 
 To be able to use Source 2013 CE you will need to download:
-* Visual Studio 2022
-* Multibyte MFC Library for Visual Studio 2022
+* Visual Studio 2019
+* Multibyte MFC Library for Visual Studio 2019
 * Windows SDK 10.0.22000.0
 
 # Contributing
