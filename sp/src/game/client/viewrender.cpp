@@ -124,10 +124,6 @@ ConVar r_DrawDetailProps( "r_DrawDetailProps", "1", FCVAR_NONE, "0=Off, 1=Normal
 
 ConVar r_worldlistcache( "r_worldlistcache", "1" );
 
-#ifdef SDK2013CE
-ConVar cr_ssao_enable( "cr_ssao_enable", "1", FCVAR_ARCHIVE );
-#endif // SDK2013CE
-
 //-----------------------------------------------------------------------------
 // Convars related to fog color
 //-----------------------------------------------------------------------------
@@ -778,12 +774,6 @@ CLIENTEFFECT_REGISTER_END()
 #endif
 
 CLIENTEFFECT_REGISTER_BEGIN( PrecachePostProcessingEffects )
-#ifdef SDK2013CE
-	CLIENTEFFECT_MATERIAL( "dev/ssao" )
-	CLIENTEFFECT_MATERIAL( "dev/ssaoblur" )
-	CLIENTEFFECT_MATERIAL( "dev/ssao_combine" )
-#endif // SDK2013CE
-
 	CLIENTEFFECT_MATERIAL( "dev/blurfiltery_and_add_nohdr" )
 	CLIENTEFFECT_MATERIAL( "dev/blurfilterx" )
 	CLIENTEFFECT_MATERIAL( "dev/blurfilterx_nohdr" )
@@ -2152,13 +2142,6 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		}
 
 	}
-
-#ifdef SDK2013CE
-	if( cr_ssao_enable.GetBool() )
-	{
-		DoSSAO( view );
-	}
-#endif // SDK2013CE
 
 	if ( mat_viewportupscale.GetBool() && mat_viewportscale.GetFloat() < 1.0f ) 
 	{
