@@ -31,6 +31,12 @@ $Project "Client"
 		{
 		}
 
+		$Folder	"AngelScript"
+		{
+			$File	"$SRCDIR\game\shared\angelscript\srceng_angelscript.cpp"
+			$File	"$SRCDIR\game\shared\angelscript\srceng_angelscript.h"
+		}
+
 		$Folder	"HL2 DLL"
 		{
 			$File	"$SRCDIR\game\shared\hl2\basehlcombatweapon_shared.cpp"
@@ -133,4 +139,9 @@ $Project "Client"
 		}
 	}
 	
+	
+	$Folder	"Link Libraries"
+	{
+		$Lib	angelscript
+	}
 }

@@ -129,6 +129,10 @@ extern ConVar tf_mm_servermode;
 #include "replay/ireplaysystem.h"
 #endif
 
+#ifdef SDK2013CE
+#include "angelscript/srceng_angelscript.h"
+#endif // SDK2013CE
+
 extern IToolFrameworkServer *g_pToolFrameworkServer;
 extern IParticleSystemQuery *g_pParticleSystemQuery;
 
@@ -862,6 +866,10 @@ bool CServerGameDLL::GameInit( void )
 		gameeventmanager->FireEvent( event );
 	}
 
+#ifdef SDK2013CE
+	g_AngelScript_Server.Init();
+#endif // SDK2013CE
+
 	return true;
 }
 
@@ -870,6 +878,9 @@ bool CServerGameDLL::GameInit( void )
 void CServerGameDLL::GameShutdown( void )
 {
 	ResetGlobalState();
+#ifdef SDK2013CE
+	g_AngelScript_Server.Shutdown();
+#endif // SDK2013CE
 }
 
 static bool g_OneWayTransition = false;

@@ -51,6 +51,12 @@ $Project "Server"
 		$Folder	"SDK2013CE DLL"
 		{
 		}
+		
+		$Folder	"AngelScript"
+		{
+			$File	"$SRCDIR\game\shared\angelscript\srceng_angelscript.cpp"
+			$File	"$SRCDIR\game\shared\angelscript\srceng_angelscript.h"
+		}
 
 		$Folder	"HL2 DLL"
 		{
@@ -303,5 +309,10 @@ $Project "Server"
 				$File	"hl2\weapon_flaregun.h"
 			}
 		}
+	}
+	
+	$Folder	"Link Libraries"
+	{
+		$Lib	angelscript
 	}
 }

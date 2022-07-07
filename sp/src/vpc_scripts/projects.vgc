@@ -137,3 +137,8 @@ $Project "togl"
 {
 	"togl\togl.vpc" [$POSIX]
 }
+
+$Project "angelscript"
+{
+	"angelscript\angelscript.vpc"
+}

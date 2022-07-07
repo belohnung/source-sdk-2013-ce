@@ -1,0 +1,112 @@
+//-----------------------------------------------------------------------------
+//	ANGELSCRIPT.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		".."
+
+$include "$SRCDIR\vpc_scripts\source_lib_base.vpc"
+
+$Project "AngelScript"
+{
+	$Folder	"Source Files"
+	{
+		$Folder "Addons"
+		{
+			$File	"addons\scriptbuilder\scriptbuilder.cpp"
+			$File	"addons\scriptstdstring\scriptstdstring.cpp"
+			$File	"addons\scriptstdstring\scriptstdstring_utils.cpp"
+			$File	"addons\scriptarray\scriptarray.cpp"
+		}
+		
+		$File	"as_atomic.cpp"
+		$File	"as_builder.cpp"
+		$File	"as_bytecode.cpp"
+		$File	"as_callfunc.cpp"
+		$File	"as_callfunc_arm.cpp"
+		$File	"as_callfunc_arm64.cpp"
+		$File	"as_callfunc_mips.cpp"
+		$File	"as_callfunc_ppc.cpp"
+		$File	"as_callfunc_ppc_64.cpp"
+		$File	"as_callfunc_sh4.cpp"
+		$File	"as_callfunc_x64_gcc.cpp"
+		$File	"as_callfunc_x64_mingw.cpp"
+		$File	"as_callfunc_x64_msvc.cpp"
+		$File	"as_callfunc_x86.cpp"
+		$File	"as_callfunc_xenon.cpp"
+		$File	"as_compiler.cpp"
+		$File	"as_configgroup.cpp"
+		$File	"as_context.cpp"
+		$File	"as_datatype.cpp"
+		$File	"as_gc.cpp"
+		$File	"as_generic.cpp"
+		$File	"as_globalproperty.cpp"
+		$File	"as_memory.cpp"
+		$File	"as_module.cpp"
+		$File	"as_objecttype.cpp"
+		$File	"as_outputbuffer.cpp"
+		$File	"as_parser.cpp"
+		$File	"as_restore.cpp"
+		$File	"as_scriptcode.cpp"
+		$File	"as_scriptengine.cpp"
+		$File	"as_scriptfunction.cpp"
+		$File	"as_scriptnode.cpp"
+		$File	"as_scriptobject.cpp"
+		$File	"as_string.cpp"
+		$File	"as_string_util.cpp"
+		$File	"as_thread.cpp"
+		$File	"as_tokenizer.cpp"
+		$File	"as_typeinfo.cpp"
+		$File	"as_variablescope.cpp"
+	}
+	
+	$Folder	"Header Files"
+	{
+		$Folder "Addons"
+		{
+			$File	"$SRCDIR\public\angelscript\addons\scriptbuilder\scriptbuilder.h"
+			$File	"$SRCDIR\public\angelscript\addons\scriptstdstring\scriptstdstring.h"
+			$File	"$SRCDIR\public\angelscript\addons\scriptarray\scriptarray.h"
+		}
+		
+		$File 	"$SRCDIR\public\angelscript\angelscript.h"
+		$File	"$SRCDIR\public\angelscript\as_array.h"
+		$File	"$SRCDIR\public\angelscript\as_atomic.h"
+		$File	"$SRCDIR\public\angelscript\as_builder.h"
+		$File	"$SRCDIR\public\angelscript\as_bytecode.h"
+		$File	"$SRCDIR\public\angelscript\as_callfunc.h"
+		$File	"$SRCDIR\public\angelscript\as_compiler.h"
+		$File	"$SRCDIR\public\angelscript\as_config.h"
+		$File	"$SRCDIR\public\angelscript\as_configgroup.h"
+		$File	"$SRCDIR\public\angelscript\as_context.h"
+		$File	"$SRCDIR\public\angelscript\as_criticalsection.h"
+		$File	"$SRCDIR\public\angelscript\as_datatype.h"
+		$File	"$SRCDIR\public\angelscript\as_debug.h"
+		$File	"$SRCDIR\public\angelscript\as_gc.h"
+		$File	"$SRCDIR\public\angelscript\as_generic.h"
+		$File	"$SRCDIR\public\angelscript\as_map.h"
+		$File	"$SRCDIR\public\angelscript\as_memory.h"
+		$File	"$SRCDIR\public\angelscript\as_module.h"
+		$File	"$SRCDIR\public\angelscript\as_objecttype.h"
+		$File	"$SRCDIR\public\angelscript\as_outputbuffer.h"
+		$File	"$SRCDIR\public\angelscript\as_parser.h"
+		$File	"$SRCDIR\public\angelscript\as_property.h"
+		$File	"$SRCDIR\public\angelscript\as_restore.h"
+		$File	"$SRCDIR\public\angelscript\as_scriptcode.h"
+		$File	"$SRCDIR\public\angelscript\as_scriptengine.h"
+		$File	"$SRCDIR\public\angelscript\as_scriptfunction.h"
+		$File	"$SRCDIR\public\angelscript\as_scriptnode.h"
+		$File	"$SRCDIR\public\angelscript\as_scriptobject.h"
+		$File	"$SRCDIR\public\angelscript\as_string.h"
+		$File	"$SRCDIR\public\angelscript\as_string_util.h"
+		$File	"$SRCDIR\public\angelscript\as_symboltable.h"
+		$File	"$SRCDIR\public\angelscript\as_texts.h"
+		$File	"$SRCDIR\public\angelscript\as_thread.h"
+		$File	"$SRCDIR\public\angelscript\as_tokendef.h"
+		$File	"$SRCDIR\public\angelscript\as_tokenizer.h"
+		$File	"$SRCDIR\public\angelscript\as_typeinfo.h"
+		$File	"$SRCDIR\public\angelscript\as_variablescope.h"
+		$File	"$SRCDIR\public\angelscript\as_namespace.h"
+	}
+}

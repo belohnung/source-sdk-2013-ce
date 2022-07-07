@@ -147,6 +147,10 @@
 #include "fbxsystem/fbxsystem.h"
 #endif
 
+#ifdef SDK2013CE
+#include "angelscript/srceng_angelscript.h"
+#endif // SDK2013CE
+
 extern vgui::IInputInternal *g_InputInternal;
 
 //=============================================================================
@@ -1085,6 +1089,10 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	HookHapticMessages(); // Always hook the messages
 #endif
 
+#ifdef SDK2013CE
+	g_AngelScript_Client.Init();
+#endif // SDK2013CE
+
 	return true;
 }
 
@@ -1209,6 +1217,10 @@ void CHLClient::Shutdown( void )
 	DisconnectDataModel();
 	ShutdownFbx();
 #endif
+
+#ifdef SDK2013CE
+	g_AngelScript_Client.Shutdown();
+#endif // SDK2013CE
 	
 	// This call disconnects the VGui libraries which we rely on later in the shutdown path, so don't do it
 //	DisconnectTier3Libraries( );
