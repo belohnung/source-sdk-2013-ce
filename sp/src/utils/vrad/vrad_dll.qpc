@@ -1,0 +1,233 @@
+//-----------------------------------------------------------------------------
+//	VRAD_DLL.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Vrad_dll"
+
+macro SRC_DIR		"..\.."
+macro OUT_BIN_DIR	"$SRC_DIR\..\game\bin"
+
+include "$SRC_DIR\qpc_scripts\source_dll_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../common"
+			"../vmpi"
+			"../vmpi/mysql/mysqlpp/include"
+			"../vmpi/mysql/include"
+		}
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"MPI"
+			"PROTECTED_THINGS_DISABLE"
+			"VRAD"
+		}
+	}
+
+	linker
+	{
+		libraries
+		{
+			"ws2_32.lib"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"$SRC_DIR\public\BSPTreeData.cpp"
+		"$SRC_DIR\public\disp_common.cpp"
+		"$SRC_DIR\public\disp_powerinfo.cpp"
+		"disp_vrad.cpp"
+		"imagepacker.cpp"
+		"incremental.cpp"
+		"leaf_ambient_lighting.cpp"
+		"lightmap.cpp"
+		"$SRC_DIR\public\loadcmdline.cpp"
+		"$SRC_DIR\public\lumpfiles.cpp"
+		"macro_texture.cpp"
+		"..\common\mpi_stats.cpp"
+		"mpivrad.cpp"
+		"..\common\MySqlDatabase.cpp"
+		"..\common\pacifier.cpp"
+		"..\common\physdll.cpp"
+		"radial.cpp"
+		"SampleHash.cpp"
+		"trace.cpp"
+		"..\common\utilmatlib.cpp"
+		"vismat.cpp"
+		"..\common\vmpi_tools_shared.cpp"
+		"..\common\vmpi_tools_shared.h"
+		"vrad.cpp"
+		"VRAD_DispColl.cpp"
+		"VradDetailProps.cpp"
+		"VRadDisps.cpp"
+		"vraddll.cpp"
+		"VRadStaticProps.cpp"
+		"$SRC_DIR\public\zip_utils.cpp"
+
+		folder	"Common Files"
+		{
+			"..\common\bsplib.cpp"
+			"$SRC_DIR\public\builddisp.cpp"
+			"$SRC_DIR\public\ChunkFile.cpp"
+			"..\common\cmdlib.cpp"
+			"$SRC_DIR\public\DispColl_Common.cpp"
+			"..\common\map_shared.cpp"
+			"..\common\polylib.cpp"
+			"..\common\scriplib.cpp"
+			"..\common\threads.cpp"
+			"..\common\tools_minidump.cpp"
+			"..\common\tools_minidump.h"
+		}
+
+		folder	"Public Files"
+		{
+			"$SRC_DIR\public\CollisionUtils.cpp"
+			"$SRC_DIR\public\filesystem_helpers.cpp"
+			"$SRC_DIR\public\ScratchPad3D.cpp"
+			"$SRC_DIR\public\ScratchPadUtils.cpp"
+		}
+	}
+
+	folder	"Header Files"
+	{
+		"disp_vrad.h"
+		"iincremental.h"
+		"imagepacker.h"
+		"incremental.h"
+		"leaf_ambient_lighting.h"
+		"lightmap.h"
+		"macro_texture.h"
+		"$SRC_DIR\public\map_utils.h"
+		"mpivrad.h"
+		"radial.h"
+		"$SRC_DIR\public\bitmap\tgawriter.h"
+		"vismat.h"
+		"vrad.h"
+		"VRAD_DispColl.h"
+		"vraddetailprops.h"
+		"vraddll.h"
+
+		folder	"Common Header Files"
+		{
+			"..\common\bsplib.h"
+			"..\common\cmdlib.h"
+			"..\common\consolewnd.h"
+			"..\vmpi\ichannel.h"
+			"..\vmpi\imysqlwrapper.h"
+			"..\vmpi\iphelpers.h"
+			"..\common\ISQLDBReplyTarget.h"
+			"..\common\map_shared.h"
+			"..\vmpi\messbuf.h"
+			"..\common\mpi_stats.h"
+			"..\common\MySqlDatabase.h"
+			"..\common\pacifier.h"
+			"..\common\polylib.h"
+			"..\common\scriplib.h"
+			"..\vmpi\threadhelpers.h"
+			"..\common\threads.h"
+			"..\common\utilmatlib.h"
+			"..\vmpi\vmpi_defs.h"
+			"..\vmpi\vmpi_dispatch.h"
+			"..\vmpi\vmpi_distribute_work.h"
+			"..\vmpi\vmpi_filesystem.h"
+		}
+
+		folder	"Public Header Files"
+		{
+			"$SRC_DIR\public\mathlib\amd3dx.h"
+			"$SRC_DIR\public\mathlib\ANORMS.H"
+			"$SRC_DIR\public\basehandle.h"
+			"$SRC_DIR\public\tier0\basetypes.h"
+			"$SRC_DIR\public\tier1\bitbuf.h"
+			"$SRC_DIR\public\bitvec.h"
+			"$SRC_DIR\public\BSPFILE.H"
+			"$SRC_DIR\public\bspflags.h"
+			"$SRC_DIR\public\BSPTreeData.h"
+			"$SRC_DIR\public\builddisp.h"
+			"$SRC_DIR\public\mathlib\bumpvects.h"
+			"$SRC_DIR\public\tier1\byteswap.h"
+			"$SRC_DIR\public\tier1\characterset.h"
+			"$SRC_DIR\public\tier1\checksum_crc.h"
+			"$SRC_DIR\public\tier1\checksum_md5.h"
+			"$SRC_DIR\public\ChunkFile.h"
+			"$SRC_DIR\public\cmodel.h"
+			"$SRC_DIR\public\CollisionUtils.h"
+			"$SRC_DIR\public\tier0\commonmacros.h"
+			"$SRC_DIR\public\mathlib\compressed_vector.h"
+			"$SRC_DIR\public\const.h"
+			"$SRC_DIR\public\coordsize.h"
+			"$SRC_DIR\public\tier0\dbg.h"
+			"$SRC_DIR\public\disp_common.h"
+			"$SRC_DIR\public\disp_powerinfo.h"
+			"$SRC_DIR\public\disp_vertindex.h"
+			"$SRC_DIR\public\DispColl_Common.h"
+			"$SRC_DIR\public\tier0\fasttimer.h"
+			"$SRC_DIR\public\filesystem.h"
+			"$SRC_DIR\public\filesystem_helpers.h"
+			"$SRC_DIR\public\GameBSPFile.h"
+			"$SRC_DIR\public\gametrace.h"
+			"$SRC_DIR\public\mathlib\halton.h"
+			"$SRC_DIR\public\materialsystem\hardwareverts.h"
+			"$SRC_DIR\public\appframework\IAppSystem.h"
+			"$SRC_DIR\public\tier0\icommandline.h"
+			"$SRC_DIR\public\ihandleentity.h"
+			"$SRC_DIR\public\materialsystem\imaterial.h"
+			"$SRC_DIR\public\materialsystem\imaterialsystem.h"
+			"$SRC_DIR\public\materialsystem\imaterialvar.h"
+			"$SRC_DIR\public\tier1\interface.h"
+			"$SRC_DIR\public\iscratchpad3d.h"
+			"$SRC_DIR\public\ivraddll.h"
+			"$SRC_DIR\public\materialsystem\materialsystem_config.h"
+			"$SRC_DIR\public\mathlib\mathlib.h"
+			"$SRC_DIR\public\tier0\memdbgon.h"
+			"$SRC_DIR\public\optimize.h"
+			"$SRC_DIR\public\phyfile.h"
+			"..\common\physdll.h"
+			"$SRC_DIR\public\tier0\platform.h"
+			"$SRC_DIR\public\tier0\protected_things.h"
+			"$SRC_DIR\public\vstdlib\random.h"
+			"$SRC_DIR\public\ScratchPad3D.h"
+			"$SRC_DIR\public\ScratchPadUtils.h"
+			"$SRC_DIR\public\string_t.h"
+			"$SRC_DIR\public\tier1\strtools.h"
+			"$SRC_DIR\public\studio.h"
+			"$SRC_DIR\public\tier1\tokenreader.h"
+			"$SRC_DIR\public\trace.h"
+			"$SRC_DIR\public\tier1\utlbuffer.h"
+			"$SRC_DIR\public\tier1\utldict.h"
+			"$SRC_DIR\public\tier1\utlhash.h"
+			"$SRC_DIR\public\tier1\utllinkedlist.h"
+			"$SRC_DIR\public\tier1\utlmemory.h"
+			"$SRC_DIR\public\tier1\utlrbtree.h"
+			"$SRC_DIR\public\tier1\utlsymbol.h"
+			"$SRC_DIR\public\tier1\utlvector.h"
+			"$SRC_DIR\public\vcollide.h"
+			"$SRC_DIR\public\mathlib\vector.h"
+			"$SRC_DIR\public\mathlib\vector2d.h"
+			"$SRC_DIR\public\mathlib\vector4d.h"
+			"$SRC_DIR\public\mathlib\vmatrix.h"
+			"..\vmpi\vmpi.h"
+			"$SRC_DIR\public\vphysics_interface.h"
+			"$SRC_DIR\public\mathlib\vplane.h"
+			"$SRC_DIR\public\tier0\vprof.h"
+			"$SRC_DIR\public\vstdlib\vstdlib.h"
+			"$SRC_DIR\public\vtf\vtf.h"
+			"$SRC_DIR\public\wadtypes.h"
+			"$SRC_DIR\public\worldsize.h"
+		}
+	}
+
+	"notes.txt"
+}

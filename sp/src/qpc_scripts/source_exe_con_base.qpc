@@ -1,0 +1,37 @@
+// ---------------------------------------------------------------
+// SOURCE_EXE_CON_BASE.QPC
+// ---------------------------------------------------------------
+
+include "$SRC_DIR/qpc_scripts/source_exe_base.qpc"
+
+macro SRC_DIR [!$SRC_DIR]
+macro OUT_BIN_DIR [!$OUT_BIN_DIR]
+macro PLATSUBDIR [!$PLATSUBDIR]
+
+configuration
+{
+	general
+	{
+		out_name "$OUT_BIN_NAME"
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"DEV_BUILD" [!$PUBLISH]
+			"_PROFILE" [$PROFILE && !$RETAIL]
+			"RETAIL_ASSERTS" [$RETAIL && $RETAILASSERTS]
+			"FRAME_POINTER_OMISSION_DISABLED"
+		}
+	}
+	
+	linker
+	{
+		options
+		{
+			"/SUBSYSTEM:CONSOLE" [$WINDOWS]
+		}
+	}
+}
+

@@ -1,0 +1,12 @@
+//-----------------------------------------------------------------------------
+//	GAME_SHADER_DX9_SDK2013CE.QPC
+//
+//	Project Script for sdk2013ce
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Shaders"
+
+macro SRC_DIR	"../.."
+macro GAMENAME "mod_episodic" [!$GAMENAME]
+
+include "$SRC_DIR/materialsystem/stdshaders/game_shader_dx9_base.qpc"

@@ -1,0 +1,96 @@
+//-----------------------------------------------------------------------------
+//	MOTIONMAPPER.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Motionmapper"
+
+macro SRC_DIR		"../.."
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
+
+include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../common"
+			"../nvtristriplib"
+			"$SRC_DIR/Game_Shared"
+		}
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"PROTECTED_THINGS_DISABLE"
+		}
+	}
+	
+	linker
+	{
+		libraries
+		{
+			"winmm.lib"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"../common/cmdlib.cpp"
+		"$SRC_DIR/public/filesystem_helpers.cpp"
+		"$SRC_DIR/public/filesystem_init.cpp"
+		"../common/filesystem_tools.cpp"
+		"motionmapper.cpp"
+		"../common/scriplib.cpp"
+	}
+
+	folder	"Header Files"
+	{
+		"$SRC_DIR/public/mathlib/amd3dx.h"
+		"$SRC_DIR/public/tier0/basetypes.h"
+		"$SRC_DIR/public/tier1/characterset.h"
+		"../common/cmdlib.h"
+		"$SRC_DIR/public/Color.h"
+		"$SRC_DIR/public/tier0/commonmacros.h"
+		"$SRC_DIR/public/mathlib/compressed_vector.h"
+		"$SRC_DIR/public/tier0/dbg.h"
+		"$SRC_DIR/public/tier0/fasttimer.h"
+		"$SRC_DIR/public/filesystem.h"
+		"$SRC_DIR/public/filesystem_helpers.h"
+		"../common/filesystem_tools.h"
+		"$SRC_DIR/public/appframework/IAppSystem.h"
+		"$SRC_DIR/public/tier0/icommandline.h"
+		"$SRC_DIR/public/vstdlib/IKeyValuesSystem.h"
+		"$SRC_DIR/public/tier1/interface.h"
+		"$SRC_DIR/public/tier1/KeyValues.h"
+		"$SRC_DIR/public/mathlib/mathlib.h"
+		"$SRC_DIR/public/tier0/mem.h"
+		"$SRC_DIR/public/tier0/memalloc.h"
+		"$SRC_DIR/public/tier0/memdbgoff.h"
+		"$SRC_DIR/public/tier0/memdbgon.h"
+		"motionmapper.h"
+		"$SRC_DIR/public/tier0/platform.h"
+		"$SRC_DIR/public/tier0/protected_things.h"
+		"../common/scriplib.h"
+		"$SRC_DIR/public/string_t.h"
+		"$SRC_DIR/public/tier1/strtools.h"
+		"$SRC_DIR/public/studio.h"
+		"$SRC_DIR/public/tier1/utlbuffer.h"
+		"$SRC_DIR/public/tier1/utldict.h"
+		"$SRC_DIR/public/tier1/utllinkedlist.h"
+		"$SRC_DIR/public/tier1/utlmemory.h"
+		"$SRC_DIR/public/tier1/utlrbtree.h"
+		"$SRC_DIR/public/tier1/utlsymbol.h"
+		"$SRC_DIR/public/tier1/utlvector.h"
+		"$SRC_DIR/public/mathlib/vector.h"
+		"$SRC_DIR/public/mathlib/vector2d.h"
+		"$SRC_DIR/public/mathlib/vector4d.h"
+		"$SRC_DIR/public/vstdlib/vstdlib.h"
+	}
+}

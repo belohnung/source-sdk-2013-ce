@@ -1,0 +1,17 @@
+// ---------------------------------------------------------------
+// SOURCE_DLL_BASE.QPC
+// ---------------------------------------------------------------
+
+macro OUT_BIN_EXT "$_BIN_EXT" [!$OUT_BIN_EXT]
+
+macro SRC_DIR [!$SRC_DIR]
+
+include "$SRC_DIR/qpc_scripts/source_dll_exe_base.qpc"
+
+configuration
+{
+	general
+	{
+		configuration_type "dynamic_library"
+	}
+}

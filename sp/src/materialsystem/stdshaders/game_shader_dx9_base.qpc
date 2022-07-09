@@ -1,0 +1,73 @@
+//-----------------------------------------------------------------------------
+//	GAME_SHADER_DX9_BASE.QPC
+//
+//	Project Script for shaders
+//-----------------------------------------------------------------------------
+
+macro GAMENAME [!$GAMENAME]
+
+macro OUT_BIN_NAME "game_shader_dx9"
+macro OUT_BIN_DIR	"$SRC_DIR\..\game\$GAMENAME\bin"
+
+include "$SRC_DIR\qpc_scripts\source_dll_base.qpc"
+
+configuration
+{
+	general
+	{
+		out_dir "$QPC_CONFIG_dx9_"
+		
+		include_directories
+		{
+			"fxctmp9"
+			"vshtmp9"
+		}
+	}
+
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"STDSHADER_DX9_DLL_EXPORT"
+			"FAST_MATERIALVAR_ACCESS"
+			"GAME_SHADER_DLL"
+		}
+	}
+
+	linker
+	{
+		libraries
+		{
+			"version.lib" "winmm.lib"
+			"$LIBPUBLIC/mathlib"
+			"$LIBPUBLIC/shaderlib"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"BaseVSShader.cpp"
+
+		"example_model_dx9.cpp"
+		"example_model_dx9_helper.cpp"
+
+		"Bloom.cpp"
+		"screenspace_general.cpp"
+	}
+
+	folder	"Header Files"
+	{
+		"BaseVSShader.h"
+		"common_fxc.h"
+		"common_hlsl_cpp_consts.h"
+		"common_ps_fxc.h"
+		"common_vertexlitgeneric_dx9.h"
+		"common_vs_fxc.h"
+		"shader_constant_register_map.h"
+
+		"example_model_dx9_helper.h"
+	}
+}

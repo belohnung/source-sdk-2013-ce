@@ -1,0 +1,111 @@
+//-----------------------------------------------------------------------------
+//	TOGL.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Togl"
+
+macro SRC_DIR		".."
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
+macro OUT_BIN_NAME	"togl"
+macro TOGL_SRC_DIR	"$SRC_DIR/togl/linuxwin" 
+macro TOGL_INCDIR	"$SRC_DIR/public/togl/linuxwin"
+
+include "$SRC_DIR/qpc_scripts/source_dll_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../"
+			"/usr/include/SDL2" [$LINUXALL]
+		}
+	}
+
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"TOGL_DLL_EXPORT"
+			"PROTECTED_THINGS_ENABLE" [!$OSXALL]
+			"strncpy=use_Q_strncpy_instead" [!$OSXALL]
+			"_snprintf=use_Q_snprintf_instead" [!$OSXALL]
+		}
+	}
+    
+	/*$Linker
+	{
+		$ImportLibrary			"$LIBPUBLIC/$_IMPLIB_PREFIX$OUT_BIN_NAME$_IMPLIB_EXT"	[!$X360 && !$OSXALL]
+		$ImportLibrary			"$SRC_DIR/lib/$PLATFORM/$_IMPLIB_PREFIX$OUT_BIN_NAME$_IMPLIB_EXT"	[$OSXALL]
+	}
+
+	$Linker [$OSXALL]
+	{
+		$SystemFrameworks "Carbon;OpenGL;Quartz;Cocoa;IOKit"
+	}
+	
+	$General [$POSIX]
+	{
+		$ImportLibrary					"$LIBPUBLIC/$_IMPLIB_PREFIX$OUT_BIN_NAME$_IMPLIB_EXT"
+		$GameOutputFile                                 "$OUT_BIN_DIR/$_IMPLIB_PREFIX$OUT_BIN_NAME$_DLL_EXT"
+	}
+
+	$PreLinkEvent [$WINDOWS]
+	{
+		$CommandLine	"call $SRC_DIR/vpc_scripts/valve_p4_edit.cmd $LIBPUBLIC/$(TargetName).lib $SRC_DIR" "/n" /
+						"$BASE"
+	}*/
+}
+
+files
+{
+	folder	"Source Files" [$GL]
+	{
+		"$TOGL_SRC_DIR/dx9asmtogl2.cpp"
+		"$TOGL_SRC_DIR/dxabstract.cpp"
+		"$TOGL_SRC_DIR/glentrypoints.cpp"	
+		"$TOGL_SRC_DIR/glmgr.cpp"			
+		"$TOGL_SRC_DIR/glmgrbasics.cpp"	
+		"$TOGL_SRC_DIR/glmgrcocoa.mm"					[$OSXALL]
+		"$TOGL_SRC_DIR/intelglmallocworkaround.cpp"		[$OSXALL]
+		"$TOGL_SRC_DIR/mach_override.c"					[$OSXALL]
+		"$TOGL_SRC_DIR/cglmtex.cpp"		
+		"$TOGL_SRC_DIR/cglmfbo.cpp"		
+		"$TOGL_SRC_DIR/cglmprogram.cpp"	
+		"$TOGL_SRC_DIR/cglmbuffer.cpp"	
+		"$TOGL_SRC_DIR/cglmquery.cpp"		
+	}
+
+	folder	"Header Files" [$GL]
+	{
+		"$TOGL_SRC_DIR/dx9asmtogl2.h"
+		"$TOGL_SRC_DIR/glmgr_flush.inl"		
+		"$TOGL_SRC_DIR/intelglmallocworkaround.h"		[$OSXALL]
+		"$TOGL_SRC_DIR/mach_override.h"					[$OSXALL]
+	}
+	
+	folder	"Public Header Files" [$GL]
+	{
+		"$SRC_DIR/public/togl/rendermechanism.h"
+		"$TOGL_INCDIR/dxabstract.h"
+		"$TOGL_INCDIR/dxabstract_types.h"
+		"$TOGL_INCDIR/glbase.h"				
+		"$TOGL_INCDIR/glentrypoints.h"		
+		"$TOGL_INCDIR/glmgr.h"			
+		"$TOGL_INCDIR/glmdebug.h"		
+		"$TOGL_INCDIR/glmgrbasics.h"
+		"$TOGL_INCDIR/glmgrext.h"		
+		"$TOGL_INCDIR/glmdisplay.h"		
+		"$TOGL_INCDIR/glmdisplaydb.h"
+		"$TOGL_INCDIR/glfuncs.h"
+		"$TOGL_INCDIR/cglmtex.h"		
+		"$TOGL_INCDIR/cglmfbo.h"		
+		"$TOGL_INCDIR/cglmprogram.h"	
+		"$TOGL_INCDIR/cglmbuffer.h"		
+		"$TOGL_INCDIR/cglmquery.h"		
+	}
+}
+

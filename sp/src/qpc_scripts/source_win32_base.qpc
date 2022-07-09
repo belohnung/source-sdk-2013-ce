@@ -1,0 +1,57 @@
+// ---------------------------------------------------------------
+// SOURCE_WIN32_BASE.qpc
+// ---------------------------------------------------------------
+
+// include "$SRC_DIR/qpc_scripts/source_win32_analyze.qpc" [$ANALYZE]
+
+configuration
+{
+	general
+	{
+		compiler "msvc_143"
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"COMPILER_MSVC32" [$WIN32]
+			
+			"COMPILER_MSVC"
+			
+			"MBCS"
+			"WIN32"
+			"_WIN32"
+			"_WINDOWS"
+			"_USRDLL"
+			
+			"_CRT_SECURE_NO_DEPRECATE"
+			"_CRT_NONSTDC_NO_DEPRECATE"
+			
+			"_ALLOW_RUNTIME_LIBRARY_MISMATCH"
+			"_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH"
+			"_ALLOW_MSC_VER_MISMATCH"
+		}
+		
+		options
+		{
+			"/WX" [!$ANALYZE]
+			"/arch:SSE" [$WIN32]
+			"/ZI" [$WIN32 && $DEBUG]
+			"/Od" "/MTd" [$DEBUG]
+			"/O2" "/Ob2" "/Oi" "/Ot" "/MT" "/Gy" [$RELEASE]
+			"/GF"
+			"/fp:fast"
+			"/Zc:forScope"
+			"/GR"
+			"/FC"
+			"/errorReport:prompt"
+			"/ignore:4316"
+			"/ignore:4838"
+			"/ignore:4456"
+			"/ignore:4457"
+			"/ignore:4458"
+			"/ignore:4459"
+		}
+	}
+}

@@ -1,0 +1,91 @@
+//-----------------------------------------------------------------------------
+//	MATHLIB.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "mathlib"
+
+macro SRC_DIR		".."
+
+include "$SRC_DIR/qpc_scripts/source_lib_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../public/mathlib"
+		}
+	}
+
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"MATHLIB_LIB"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"color_conversion.cpp"
+		"halton.cpp"
+		"lightdesc.cpp"
+		"mathlib_base.cpp"
+		"powsse.cpp"
+		"sparse_convolution_noise.cpp"
+		"sseconst.cpp"
+		"sse.cpp"					[$WINDOWS||$POSIX]
+		"ssenoise.cpp"				
+		"3dnow.cpp"					[$WINDOWS||$LINUX]
+		"anorms.cpp"
+		"bumpvects.cpp"
+		"IceKey.cpp"
+		"imagequant.cpp"
+		"polyhedron.cpp"
+		"quantize.cpp"
+		"randsse.cpp"
+		"spherical.cpp"
+		"simdvectormatrix.cpp"
+		"vector.cpp"
+		"vmatrix.cpp"
+		"almostequal.cpp"
+	}
+
+	folder	"Public Header Files"
+	{
+		"$SRC_DIR/public/mathlib/amd3dx.h"			[$WINDOWS||$LINUX]		
+		"$SRC_DIR/public/mathlib/anorms.h"
+		"$SRC_DIR/public/mathlib/bumpvects.h"
+		"$SRC_DIR/public/mathlib/compressed_3d_unitvec.h"
+		"$SRC_DIR/public/mathlib/compressed_light_cube.h"
+		"$SRC_DIR/public/mathlib/compressed_vector.h"
+		"$SRC_DIR/public/mathlib/halton.h"
+		"$SRC_DIR/public/mathlib/IceKey.H"
+		"$SRC_DIR/public/mathlib/lightdesc.h"
+		"$SRC_DIR/public/mathlib/math_pfns.h"
+		"$SRC_DIR/public/mathlib/mathlib.h"
+		"$SRC_DIR/public/mathlib/noise.h"
+		"$SRC_DIR/public/mathlib/polyhedron.h"
+		"$SRC_DIR/public/mathlib/quantize.h"
+		"$SRC_DIR/public/mathlib/simdvectormatrix.h"
+		"$SRC_DIR/public/mathlib/spherical_geometry.h"
+		"$SRC_DIR/public/mathlib/ssemath.h"
+		"$SRC_DIR/public/mathlib/ssequaternion.h"
+		"$SRC_DIR/public/mathlib/vector.h"
+		"$SRC_DIR/public/mathlib/vector2d.h"
+		"$SRC_DIR/public/mathlib/vector4d.h"
+		"$SRC_DIR/public/mathlib/vmatrix.h"
+		"$SRC_DIR/public/mathlib/vplane.h"
+	}
+
+	folder	"Header Files"
+	{
+		"noisedata.h"
+		"sse.h"					[$WINDOWS||$POSIX]
+		"3dnow.h"				[$WINDOWS||$LINUX]
+	}
+}

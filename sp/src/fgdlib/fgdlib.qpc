@@ -1,0 +1,44 @@
+//-----------------------------------------------------------------------------
+//	FGDLIB.GPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Fgdlib"
+
+macro SRC_DIR		".."
+
+include "$SRC_DIR/qpc_scripts/source_lib_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"$SRC_DIR/utils/common"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"gamedata.cpp"
+		"gdclass.cpp"
+		"gdvar.cpp"
+		"inputoutput.cpp"
+		"wckeyvalues.cpp"
+	}
+
+	folder	"Header Files"
+	{
+		"$SRC_DIR/public/fgdlib/fgdlib.h"
+		"$SRC_DIR/public/fgdlib/gamedata.h"
+		"$SRC_DIR/public/fgdlib/gdclass.h"
+		"$SRC_DIR/public/fgdlib/gdvar.h"
+		"$SRC_DIR/public/fgdlib/helperinfo.h"
+		"$SRC_DIR/public/fgdlib/ieditortexture.h"
+		"$SRC_DIR/public/fgdlib/inputoutput.h"
+		"$SRC_DIR/public/fgdlib/wckeyvalues.h"
+	}
+}

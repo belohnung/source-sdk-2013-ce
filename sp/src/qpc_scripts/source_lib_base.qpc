@@ -1,0 +1,37 @@
+// ---------------------------------------------------------------
+// SOURCE_LIB_BASE.QPC
+// ---------------------------------------------------------------
+
+include "$SRC_DIR/qpc_scripts/source_base.qpc"
+
+macro OUT_LIB_DIR "$SRC_DIR/lib/public$PLATSUBDIR" [!$OUT_LIB_DIR]
+macro OUT_LIB_NAME "$PROJECT_SCRIPT_NAME" [!$OUT_LIB_NAME]
+
+configuration
+{
+	general
+	{
+		out_name "$OUT_LIB_NAME"
+		out_dir "$OUT_LIB_DIR"
+		configuration_type "static_library"
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"LIBNAME=$OUT_LIB_NAME"
+			"_LIB"
+		}
+	}
+	
+	linker
+	{
+		output_file "$OUT_LIB_DIR/$OUT_LIB_NAME.lib"
+		
+		options
+		{
+			"/NOLOGO"
+		}
+	}
+}

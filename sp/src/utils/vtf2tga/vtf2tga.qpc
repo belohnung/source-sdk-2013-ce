@@ -1,0 +1,39 @@
+//-----------------------------------------------------------------------------
+//	VTF2TGA.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Vtf2tga"
+
+macro SRC_DIR		"../.."
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
+
+include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
+
+files
+{
+	folder	"Source Files"
+	{
+		"vtf2tga.cpp"
+	}
+
+	folder	"Header Files"
+	{
+		"$SRC_DIR/public/mathlib/amd3dx.h"
+		"$SRC_DIR/public/tier0/basetypes.h"
+		"$SRC_DIR/public/tier0/commonmacros.h"
+		"$SRC_DIR/public/tier0/dbg.h"
+		"$SRC_DIR/public/tier0/fasttimer.h"
+		"$SRC_DIR/public/mathlib/mathlib.h"
+		"$SRC_DIR/public/tier0/memdbgon.h"
+		"$SRC_DIR/public/tier0/platform.h"
+		"$SRC_DIR/public/tier0/protected_things.h"
+		"$SRC_DIR/public/string_t.h"
+		"$SRC_DIR/public/tier1/strtools.h"
+		"$SRC_DIR/public/tier1/utlbuffer.h"
+		"$SRC_DIR/public/tier1/utlmemory.h"
+		"$SRC_DIR/public/mathlib/vector.h"
+		"$SRC_DIR/public/mathlib/vector2d.h"
+		"$SRC_DIR/public/vstdlib/vstdlib.h"
+		"$SRC_DIR/public/vtf/vtf.h"
+	}
+}

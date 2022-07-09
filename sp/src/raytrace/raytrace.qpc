@@ -1,0 +1,30 @@
+//-----------------------------------------------------------------------------
+//	RAYTRACE.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Raytrace"
+
+macro SRC_DIR		".."
+
+include "$SRC_DIR/qpc_scripts/source_lib_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"$SRC_DIR/utils/common"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"raytrace.cpp"
+		"trace2.cpp"
+		"trace3.cpp"
+	}
+}

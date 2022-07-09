@@ -1,0 +1,53 @@
+//-----------------------------------------------------------------------------
+//	HEIGHT2NORMAL.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Height2normal"
+
+macro SRC_DIR		"../.."
+macro OUT_BIN_DIR	"$SRCDIR/../game/bin"
+
+include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../common"
+		}
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"_HAS_ITERATOR_DEBUGGING=0"
+			"_WIN32"
+			"_CONSOLE"
+			"_ALLOW_RUNTIME_LIBRARY_MISMATCH"
+			"_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH"
+			"_ALLOW_MSC_VER_MISMATCH"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		- "$SRC_DIR/public/tier0/memoverride.cpp"
+	}
+
+	folder	"Source Files"
+	{
+		"height2normal.cpp"
+	}
+
+	folder	"Header Files"
+	{
+		"$SRC_DIR/public/tier1/interface.h"
+		"$SRC_DIR/public/tier1/utlbuffer.h"
+	}
+}

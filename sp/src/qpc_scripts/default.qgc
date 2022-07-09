@@ -1,0 +1,81 @@
+//-----------------------------------------------------------------------------
+//	DEFAULT.QGC
+//-----------------------------------------------------------------------------
+
+macro   "SOURCESDK" "1"
+
+configurations
+{
+	"Debug"
+	"Release"
+}
+
+// SDK2013CE
+project "client"						"game/client/client_sdk2013ce.qpc" [$SDK2013CE]
+project "server"						"game/server/server_sdk2013ce.qpc" [$SDK2013CE]
+project "game_shader_dx9"				"materialsystem/stdshaders/game_shader_dx9_sdk2013ce.qpc" [$SDK2013CE]
+
+// Utils
+project "height2normal"					"utils/height2normal/height2normal.qpc"
+project "captioncompiler"				"utils/captioncompiler/captioncompiler.qpc"
+project "motionmapper"					"utils/motionmapper/motionmapper.qpc"
+project "glview"						"utils/glview/glview.qpc"
+project "tgadiff"						"utils/tgadiff/tgadiff.qpc"
+project "vbsp"							"utils/vbsp/vbsp.qpc"
+project "vice"							"utils/vice/vice.qpc"
+project "vrad"							"utils/vrad/vrad_dll.qpc"
+project "vrad_launcher"					"utils/vrad_launcher/vrad_launcher.qpc"
+project "vtf2tga"						"utils/vtf2tga/vtf2tga.qpc"
+project "vtfdiff"						"utils/vtfdiff/vtfdiff.qpc"
+project "vvis"							"utils/vvis/vvis_dll.qpc"
+project "vvis_launcher"					"utils/vvis_launcher/vvis_launcher.qpc"
+
+// Other
+project "vgui_controls"					"vgui2/vgui_controls/vgui_controls.qpc"
+project "raytrace"						"raytrace/raytrace.qpc"
+project "mathlib"						"mathlib/mathlib.qpc"
+project "fgdlib"						"fgdlib/fgdlib.qpc" [$WINDOWS]
+project "togl"							"togl/togl.qpc" [!$WINDOWS]
+
+group "gamedlls"
+{
+	"client"
+	"server"
+}
+
+group "game"
+{
+	contains "gamedlls"
+	"vgui_controls"
+}
+
+group "shaders"
+{
+	"game_shader_dx9"
+}
+
+group "everything"
+{
+	contains "game"
+	contains "shaders"
+
+	// Utils
+	"height2normal"
+	"captioncompiler"
+	"motionmapper"
+	"glview"
+	"tgadiff"
+	"vbsp"
+	"vice"
+	"vrad"
+	"vrad_launcher"
+	"vtf2tga"
+	"vtfdiff"
+	"vvis"
+	"vvis_launcher"
+
+	"mathlib"
+	"fgdlib"
+	"raytrace"
+	"togl"
+}

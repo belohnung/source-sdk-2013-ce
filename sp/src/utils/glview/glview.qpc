@@ -1,0 +1,61 @@
+//-----------------------------------------------------------------------------
+//	GLVIEW.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME	"Glview"
+
+macro SRC_DIR		"../.."
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
+
+include "$SRC_DIR/qpc_scripts/source_exe_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../common"
+		}
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"PROTECTED_THINGS_DISABLE"
+		}
+	}
+
+	linker
+	{
+		libraries
+		{
+			"glu32.lib" "opengl32.lib" "odbc32.lib" "odbccp32.lib" "winmm.lib"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"glview.cpp"
+
+		folder	"common files"
+		{
+			"../common/cmdlib.cpp"
+			"$SRC_DIR/public/filesystem_helpers.cpp"
+			"$SRC_DIR/public/filesystem_init.cpp"
+			"../common/filesystem_tools.cpp"
+			"../common/physdll.cpp"
+		}
+	}
+
+	folder	"Header Files"
+	{
+		"../common/cmdlib.h"
+		"glos.h"
+		"$SRC_DIR/public/mathlib/mathlib.h"
+	}
+}

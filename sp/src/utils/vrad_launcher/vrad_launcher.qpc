@@ -1,0 +1,45 @@
+//-----------------------------------------------------------------------------
+//	VRAD_LAUNCHER.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Vrad_launcher"
+
+macro SRC_DIR		"../.."
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
+macro OUT_BIN_NAME	"vrad"
+
+include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
+
+/*$Configuration
+{
+	$Compiler
+	{
+		$Create/UsePrecompiledHeader		"Use Precompiled Header (/Yu)"
+		$PrecompiledHeaderFile				"Debug/vrad_launcher.pch"
+	}
+}*/
+
+files
+{
+	folder	"Source Files"
+	{
+		- "$SRC_DIR/public/tier0/memoverride.cpp"
+	}
+
+	folder	"Source Files"
+	{
+		"vrad_launcher.cpp"
+		
+		"StdAfx.cpp"
+		{
+			precompiled_header "create"
+		}
+	}
+
+	folder	"Header Files"
+	{
+		"$SRC_DIR/public/tier1/interface.h"
+		"$SRC_DIR/public/ivraddll.h"
+		"StdAfx.h"
+	}
+}

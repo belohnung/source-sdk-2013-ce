@@ -23,6 +23,8 @@ ipch
 *.vpc_crc
 *.sln
 *.sentinel
+*.pdb
+*.idb
 
 # Visual Studio build results
 *[Dd]ebug*/

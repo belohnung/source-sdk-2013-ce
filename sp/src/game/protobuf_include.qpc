@@ -1,0 +1,15 @@
+//-----------------------------------------------------------------------------
+//	PROTOBUF_INCLUDE.QPC
+//-----------------------------------------------------------------------------
+
+macro PLATFORM [!$PLATFORM]
+
+configuration
+{
+	libraries
+	{
+		"$LIBPUBLIC/2010/libprotobuf" [$VS2010]
+		"$LIBPUBLIC/2012/libprotobuf" [$VS2012]
+		"$LIBPUBLIC/libprotobuf" [$VS2013 || !$WINDOWS]
+	}
+}

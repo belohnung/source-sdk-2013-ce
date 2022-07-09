@@ -1,0 +1,190 @@
+//-----------------------------------------------------------------------------
+//	VBSP.QPC
+//-----------------------------------------------------------------------------
+
+macro PROJECT_NAME "Vbsp"
+
+macro SRC_DIR	"../.."
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
+
+include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
+
+configuration
+{
+	general
+	{
+		include_directories
+		{
+			"../common"
+			"../vmpi"
+		}
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"MACRO_MATHLIB"
+			"PROTECTED_THINGS_DISABLE"
+		}
+	}
+
+	linker
+	{
+		libraries
+		{
+			"ws2_32.lib" "odbc32.lib" "odbccp32.lib" "winmm.lib"
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"boundbox.cpp"
+		"brushbsp.cpp"
+		"$SRC_DIR/public/CollisionUtils.cpp"
+		"csg.cpp"
+		"cubemap.cpp"
+		"detail.cpp"
+		"detailObjects.cpp"
+		"$SRC_DIR/public/disp_common.cpp"
+		"disp_ivp.cpp"
+		"$SRC_DIR/public/disp_powerinfo.cpp"
+		"disp_vbsp.cpp"
+		"faces.cpp"
+		"glfile.cpp"
+		"ivp.cpp"
+		"leakfile.cpp"
+		"$SRC_DIR/public/loadcmdline.cpp"
+		"$SRC_DIR/public/lumpfiles.cpp"
+		"map.cpp"
+		"manifest.cpp"
+		"materialpatch.cpp"
+		"materialsub.cpp"
+		"../common/mstristrip.cpp"
+		"nodraw.cpp"
+		"normals.cpp"
+		"overlay.cpp"
+		"../common/physdll.cpp"
+		"portals.cpp"
+		"prtfile.cpp"
+		"$SRC_DIR/public/ScratchPad3D.cpp"
+		"../common/scratchpad_helpers.cpp"
+		"StaticProp.cpp"
+		"textures.cpp"
+		"tree.cpp"
+		"../common/utilmatlib.cpp"
+		"vbsp.cpp"
+		"worldvertextransitionfixup.cpp"
+		"writebsp.cpp"
+		"$SRC_DIR/public/zip_utils.cpp"
+
+		folder	"Common Files"
+		{
+			"../common/bsplib.cpp"
+			"$SRC_DIR/public/builddisp.cpp"
+			"$SRC_DIR/public/ChunkFile.cpp"
+			"../common/cmdlib.cpp"
+			"$SRC_DIR/public/filesystem_helpers.cpp"
+			"$SRC_DIR/public/filesystem_init.cpp"
+			"../common/filesystem_tools.cpp"
+			"../common/map_shared.cpp"
+			"../common/pacifier.cpp"
+			"../common/polylib.cpp"
+			"../common/scriplib.cpp"
+			"../common/threads.cpp"
+			"../common/tools_minidump.cpp"
+			"../common/tools_minidump.h"
+		}
+	}
+
+	folder	"Header Files"
+	{
+		"boundbox.h"
+		"csg.h"
+		"detail.h"
+		"$SRC_DIR/public/disp_powerinfo.h"
+		"disp_vbsp.h"
+		"$SRC_DIR/public/disp_vertindex.h"
+		"faces.h"
+		"map.h"
+		"manifest.h"
+		"materialpatch.h"
+		"materialsub.h"
+		"../common/scratchpad_helpers.h"
+		"vbsp.h"
+		"worldvertextransitionfixup.h"
+		"writebsp.h"
+
+		folder	"Common header files"
+		{
+			"../common/bsplib.h"
+			"$SRC_DIR/public/builddisp.h"
+			"$SRC_DIR/public/ChunkFile.h"
+			"../common/cmdlib.h"
+			"disp_ivp.h"
+			"$SRC_DIR/public/filesystem.h"
+			"$SRC_DIR/public/filesystem_helpers.h"
+			"../common/FileSystem_Tools.h"
+			"$SRC_DIR/public/GameBSPFile.h"
+			"$SRC_DIR/public/tier1/interface.h"
+			"ivp.h"
+			"../common/map_shared.h"
+			"../common/pacifier.h"
+			"../common/polylib.h"
+			"$SRC_DIR/public/tier1/tokenreader.h"
+			"../common/utilmatlib.h"
+			"../vmpi/vmpi.h"
+			"$SRC_DIR/public/zip_uncompressed.h"
+		}
+	}
+
+	folder	"Public Headers"
+	{
+		"$SRC_DIR/public/mathlib/amd3dx.h"
+		"$SRC_DIR/public/arraystack.h"
+		"$SRC_DIR/public/tier0/basetypes.h"
+		"$SRC_DIR/public/BSPFILE.H"
+		"$SRC_DIR/public/bspflags.h"
+		"$SRC_DIR/public/BSPTreeData.h"
+		"$SRC_DIR/public/mathlib/bumpvects.h"
+		"$SRC_DIR/public/tier1/byteswap.h"
+		"$SRC_DIR/public/cmodel.h"
+		"$SRC_DIR/public/CollisionUtils.h"
+		"$SRC_DIR/public/tier0/commonmacros.h"
+		"$SRC_DIR/public/tier0/dbg.h"
+		"$SRC_DIR/public/disp_common.h"
+		"$SRC_DIR/public/IScratchPad3D.h"
+		"$SRC_DIR/public/mathlib/mathlib.h"
+		"../common/mstristrip.h"
+		"$SRC_DIR/public/nmatrix.h"
+		"$SRC_DIR/public/NTree.h"
+		"$SRC_DIR/public/nvector.h"
+		"$SRC_DIR/public/phyfile.h"
+		"../common/physdll.h"
+		"../common/qfiles.h"
+		"$SRC_DIR/public/ScratchPad3D.h"
+		"../common/scriplib.h"
+		"$SRC_DIR/public/studio.h"
+		"../common/threads.h"
+		"$SRC_DIR/public/tier1/utlbuffer.h"
+		"$SRC_DIR/public/tier1/utllinkedlist.h"
+		"$SRC_DIR/public/tier1/utlmemory.h"
+		"$SRC_DIR/public/tier1/utlrbtree.h"
+		"$SRC_DIR/public/tier1/utlsymbol.h"
+		"$SRC_DIR/public/tier1/utlvector.h"
+		"$SRC_DIR/public/vcollide.h"
+		"$SRC_DIR/public/mathlib/vector.h"
+		"$SRC_DIR/public/mathlib/vector2d.h"
+		"$SRC_DIR/public/mathlib/vector4d.h"
+		"$SRC_DIR/public/mathlib/vmatrix.h"
+		"$SRC_DIR/public/vphysics_interface.h"
+		"$SRC_DIR/public/mathlib/vplane.h"
+		"$SRC_DIR/public/wadtypes.h"
+		"$SRC_DIR/public/worldsize.h"
+	}
+
+	"notes.txt"
+}

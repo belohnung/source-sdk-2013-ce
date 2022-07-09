@@ -1,0 +1,68 @@
+// ---------------------------------------------------------------
+// SOURCE_BASE.QPC
+// ---------------------------------------------------------------
+
+include "$SRC_DIR/qpc_scripts/macros.gpc"
+include "$SRC_DIR/qpc_scripts/source_win32_base.qpc" [$WINDOWS]
+
+configuration
+{
+	general
+	{
+		out_dir "./$BUILD_DIR"
+		build_dir "./$BUILD_DIR"
+		
+		compiler "v143"
+		language "cpp"
+		
+		include_directories
+		{
+			"$SRC_DIR/common"
+			"$SRC_DIR/public"
+			"$SRC_DIR/public/tier0"
+			"$SRC_DIR/public/tier1"
+		}
+		
+		library_directories
+		{
+			"$LIBCOMMON"
+			"$LIBPUBLIC"
+		}
+	}
+	
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"DEV_BUILD" [!$PUBLISH]
+			"_PROFILE" [$PROFILE && !$RETAIL]
+			
+			"PLATFORM_64BITS" [$64BITS]
+			
+			"SUPPRESS_INVALID_PARAMETER_NO_INFO" "_HAS_ITERATOR_DEBUGGING=0" "_DEBUG" "DEBUG" [$DEBUG]
+			"NDEBUG" [$RELEASE]
+			
+			"RETAIL_ASSERTS" [$RETAIL && $RETAILASSERTS]
+			"RELEASEASSERTS" [$RELEASEASSERTS && $RELEASE]
+			
+			"FRAME_POINTER_OMISSION_DISABLED"
+			"MEMOVERRIDE_MODULE=$PROJECT_NAME"
+			
+			"_BIN_EXT=$_BIN_EXT"
+			"DLLNAME=$OUT_BIN_NAME"
+			
+			"STAGING_ONLY" [$STAGING_ONLY]
+			"TF_BETA" [$TF_BETA]
+			"RAD_TELEMETRY_DISABLED" [$SOURCESDK]
+			"VPC"
+			
+			// video base
+			"BINK_VIDEO"
+			"AVI_VIDEO"
+			"WMV_VIDEO"
+		}
+		
+		precompiled_header "none"
+	}
+}
+

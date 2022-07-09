@@ -1,0 +1,63 @@
+// ---------------------------------------------------------------
+// SOURCE_DLL_EXE_BASE.QPC
+// ---------------------------------------------------------------
+
+macro OUT_BIN_EXT "$_BIN_EXT" [!$OUT_BIN_EXT]
+
+macro SRC_DIR [!$SRC_DIR]
+
+include "$SRC_DIR/qpc_scripts/source_base.qpc"
+
+macro OUT_BIN_DIR [!$OUT_BIN_DIR]
+macro OUT_BIN_DIR "$OUT_BIN_DIR$PLATSUBDIR"
+
+configuration
+{
+	general
+	{
+		out_name "$OUT_BIN_NAME"
+	}
+	
+	linker
+	{
+		output_file "$OUT_BIN_DIR/$OUT_BIN_NAME$OUT_BIN_EXT"
+		debug_file "$OUT_BIN_DIR/$OUT_BIN_NAME.pdb"
+		
+		libraries
+		{
+			"shell32.lib" "user32.lib" "advapi32.lib" "gdi32.lib" "comdlg32.lib" "ole32.lib" [$WINDOWS]
+			"$LIBPUBLIC/tier0"
+			"$LIBPUBLIC/tier1"
+			"$LIBPUBLIC/vstdlib"
+		}
+		
+		ignore_libraries
+		{
+			"libc"
+			"libcd"
+			"libcmtd"
+		}
+		
+		options
+		{
+			"/INCREMENTAL" [$DEBUG]
+			"/INCREMENTAL:NO" "/OPT:REF" [$RELEASE]
+			"/NOLOGO"
+			"/DEBUG"
+			"/SUBSYSTEM:WINDOWS"
+			"/ERRORREPORT:PROMPT"
+			"/SAFESEH:NO"
+		}
+	}
+}
+
+files
+{
+	folder "Source Files"
+	{
+		"$SRC_DIR/public/tier0/memoverride.cpp"
+		{
+			precompiled_header "none"
+		}
+	}
+}
