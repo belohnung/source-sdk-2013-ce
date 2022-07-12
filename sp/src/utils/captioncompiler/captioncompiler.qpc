@@ -29,6 +29,17 @@ configuration
 			"captioncompiler"
 		}
 	}
+	
+	linker
+	{
+		libraries
+		{
+			"$LIBPUBLIC/appframework"
+			"$LIBPUBLIC/mathlib"
+			"$LIBPUBLIC/tier2"
+			"$LIBPUBLIC/tier3"
+		}
+	}
 }
 
 files

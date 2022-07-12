@@ -47,15 +47,12 @@ configuration
 		libraries
 		{
 			"winmm.lib"
-			"bonesetup"
 			"choreoobjects"
 			"dmxloader"
 			"mathlib"
 			"particles"
-			"responserules_runtime"
 			"tier2"
 			"tier3"
-			"vgui_controls"
 			"steam_api"
 		}
 	}

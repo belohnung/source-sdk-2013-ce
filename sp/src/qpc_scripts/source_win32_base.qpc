@@ -1,8 +1,6 @@
 // ---------------------------------------------------------------
-// SOURCE_WIN32_BASE.qpc
+// SOURCE_WIN32_BASE.QPC
 // ---------------------------------------------------------------
-
-// include "$SRC_DIR/qpc_scripts/source_win32_analyze.qpc" [$ANALYZE]
 
 configuration
 {
@@ -19,11 +17,9 @@ configuration
 			
 			"COMPILER_MSVC"
 			
-			"MBCS"
 			"WIN32"
 			"_WIN32"
 			"_WINDOWS"
-			"_USRDLL"
 			
 			"_CRT_SECURE_NO_DEPRECATE"
 			"_CRT_NONSTDC_NO_DEPRECATE"
@@ -31,6 +27,8 @@ configuration
 			"_ALLOW_RUNTIME_LIBRARY_MISMATCH"
 			"_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH"
 			"_ALLOW_MSC_VER_MISMATCH"
+			
+			"FRAME_POINTER_OMISSION_DISABLED"
 		}
 		
 		options
@@ -46,6 +44,9 @@ configuration
 			"/GR"
 			"/FC"
 			"/errorReport:prompt"
+			"/Gw"
+			"/Zc:inline"
+			"/ignore:4221"
 			"/ignore:4316"
 			"/ignore:4838"
 			"/ignore:4456"

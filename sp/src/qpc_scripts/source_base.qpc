@@ -2,7 +2,7 @@
 // SOURCE_BASE.QPC
 // ---------------------------------------------------------------
 
-include "$SRC_DIR/qpc_scripts/macros.gpc"
+include "$SRC_DIR/qpc_scripts/macros.qgc"
 include "$SRC_DIR/qpc_scripts/source_win32_base.qpc" [$WINDOWS]
 
 configuration
@@ -12,7 +12,6 @@ configuration
 		out_dir "./$BUILD_DIR"
 		build_dir "./$BUILD_DIR"
 		
-		compiler "v143"
 		language "cpp"
 		
 		include_directories
@@ -51,8 +50,6 @@ configuration
 			"_BIN_EXT=$_BIN_EXT"
 			"DLLNAME=$OUT_BIN_NAME"
 			
-			"STAGING_ONLY" [$STAGING_ONLY]
-			"TF_BETA" [$TF_BETA]
 			"RAD_TELEMETRY_DISABLED" [$SOURCESDK]
 			"VPC"
 			

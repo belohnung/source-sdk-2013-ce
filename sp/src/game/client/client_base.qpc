@@ -46,23 +46,21 @@ configuration
 		
 		libraries
 		{
-			"winmm.lib"
+			"winmm.lib" [$WIN32]
 			"bitmap"
-			"bonesetup"
 			"choreoobjects"
 			"dmxloader"
 			"mathlib"
 			"matsys_controls"
-			"npsclient"
 			"particles"
-			"raytrace"
-			"responserules_runtime"
+			"tier1"
 			"tier2"
 			"tier3"
 			"vgui_controls"
-			"videocfg"
 			"vtf"
 			"steam_api"
+			"$LIBCOMMON/libcurl" [$WIN32]
+			"libz" [$WIN32]
 		}
 	}
 }

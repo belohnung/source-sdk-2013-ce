@@ -1,3 +1,3 @@
 [submodule "sp/src/devtools/qpc"]
 	path = sp/src/devtools/qpc
-	url = https://github.com/Demez/QuiverProjectCreator.git
+	url = https://github.com/DotWith/QuiverProjectCreator.git

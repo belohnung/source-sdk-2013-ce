@@ -31,6 +31,7 @@ project "vvis"							"utils/vvis/vvis_dll.qpc"
 project "vvis_launcher"					"utils/vvis_launcher/vvis_launcher.qpc"
 
 // Other
+project "tier1"							"tier1/tier1.qpc"
 project "vgui_controls"					"vgui2/vgui_controls/vgui_controls.qpc"
 project "raytrace"						"raytrace/raytrace.qpc"
 project "mathlib"						"mathlib/mathlib.qpc"
@@ -74,6 +75,7 @@ group "everything"
 	"vvis"
 	"vvis_launcher"
 
+	"tier1"
 	"mathlib"
 	"fgdlib"
 	"raytrace"

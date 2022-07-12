@@ -60,11 +60,19 @@ static const int	ice_keyrot[16] = {
 
 static unsigned int
 gf_mult (
+#if __cplusplus <= 201703L
+	unsigned int	a,
+	unsigned int	b,
+	unsigned int	m
+) {
+	unsigned int	res = 0;
+#else
 	register unsigned int	a,
 	register unsigned int	b,
 	register unsigned int	m
 ) {
 	register unsigned int	res = 0;
+#endif
 
 	while (b) {
 	    if (b & 1)
@@ -88,10 +96,17 @@ gf_mult (
 
 static unsigned long
 gf_exp7 (
+#if __cplusplus <= 201703L
+	unsigned int	b,
+	unsigned int		m
+) {
+	unsigned int	x;
+#else
 	register unsigned int	b,
 	unsigned int		m
 ) {
 	register unsigned int	x;
+#endif
 
 	if (b == 0)
 	    return (0);
@@ -109,10 +124,17 @@ gf_exp7 (
 
 static unsigned long
 ice_perm32 (
+#if __cplusplus <= 201703L
+	unsigned long	x
+) {
+	unsigned long		res = 0;
+	const unsigned long	*pbox = ice_pbox;
+#else
 	register unsigned long	x
 ) {
 	register unsigned long		res = 0;
 	register const unsigned long	*pbox = ice_pbox;
+#endif
 
 	while (x) {
 	    if (x & 1)
@@ -133,7 +155,11 @@ ice_perm32 (
 static void
 ice_sboxes_init (void)
 {
+#if __cplusplus <= 201703L
+	int	i;
+#else
 	register int	i;
+#endif
 
 	for (i=0; i<1024; i++) {
 	    int			col = (i >> 1) & 0xff;
@@ -202,7 +228,11 @@ IceKey::~IceKey ()
 
 static unsigned long
 ice_f (
+#if __cplusplus <= 201703L
+	unsigned long	p,
+#else
 	register unsigned long	p,
+#endif
 	const IceSubkey		*sk
 ) {
 	unsigned long	tl, tr;		/* Expanded 40-bit values */
@@ -240,8 +270,13 @@ IceKey::encrypt (
 	unsigned char		*ctext
 ) const
 {
+#if __cplusplus <= 201703L
+	int		i;
+	unsigned long	l, r;
+#else
 	register int		i;
 	register unsigned long	l, r;
+#endif
 
 	l = (((unsigned long) ptext[0]) << 24)
 				| (((unsigned long) ptext[1]) << 16)
@@ -275,8 +310,13 @@ IceKey::decrypt (
 	unsigned char		*ptext
 ) const
 {
+#if __cplusplus <= 201703L
+	int		i;
+	unsigned long	l, r;
+#else
 	register int		i;
 	register unsigned long	l, r;
+#endif
 
 	l = (((unsigned long) ctext[0]) << 24)
 				| (((unsigned long) ctext[1]) << 16)
@@ -313,20 +353,33 @@ IceKey::scheduleBuild (
 	int		i;
 
 	for (i=0; i<8; i++) {
-	    register int	j;
-	    register int	kr = keyrot[i];
+#if __cplusplus <= 201703L
+	    int	j;
+	    int	kr = keyrot[i];
+#else
+		register int	j;
+		register int	kr = keyrot[i];
+#endif
 	    IceSubkey		*isk = &_keysched[n + i];
 
 	    for (j=0; j<3; j++)
 		isk->val[j] = 0;
 
 	    for (j=0; j<15; j++) {
+#if __cplusplus <= 201703L
+		int	k;
+#else
 		register int	k;
+#endif
 		unsigned long	*curr_sk = &isk->val[j % 3];
 
 		for (k=0; k<4; k++) {
 		    unsigned short	*curr_kb = &kb[(kr + k) & 3];
-		    register int	bit = *curr_kb & 1;
+#if __cplusplus <= 201703L
+			int	bit = *curr_kb & 1;
+#else
+			register int	bit = *curr_kb & 1;
+#endif
 
 		    *curr_sk = (*curr_sk << 1) | bit;
 		    *curr_kb = (*curr_kb >> 1) | ((bit ^ 1) << 15);

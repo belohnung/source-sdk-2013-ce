@@ -1,0 +1,22 @@
+//-----------------------------------------------------------------------------
+//	TIER0_EXCLUDE.QPC
+//-----------------------------------------------------------------------------
+
+configuration
+{
+	linker
+	{
+		libraries
+		{
+			- "$LIBPUBLIC\tier0"	
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		- "$SRC_DIR/public/tier0/memoverride.cpp"
+	}	
+}

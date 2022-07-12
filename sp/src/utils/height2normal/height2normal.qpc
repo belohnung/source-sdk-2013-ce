@@ -5,7 +5,7 @@
 macro PROJECT_NAME "Height2normal"
 
 macro SRC_DIR		"../.."
-macro OUT_BIN_DIR	"$SRCDIR/../game/bin"
+macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
 
 include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
 

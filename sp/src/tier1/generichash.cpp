@@ -142,7 +142,12 @@ unsigned FASTCALL HashStringCaselessConventional( const char *pszKey )
 //-----------------------------------------------------------------------------
 unsigned FASTCALL HashInt( const int n )
 {
+#if __cplusplus <= 201703L
+	unsigned		even, odd;
+#else
 	register unsigned		even, odd;
+#endif
+
 	even  = g_nRandomValues[n & 0xff];
 	odd   = g_nRandomValues[((n >> 8) & 0xff)];
 
@@ -159,10 +164,18 @@ unsigned FASTCALL HashInt( const int n )
 //-----------------------------------------------------------------------------
 unsigned FASTCALL Hash4( const void *pKey )
 {
+#if __cplusplus <= 201703L
+	const uint32 *	p = (const uint32 *) pKey;
+	unsigned		even,
+					odd,
+					n;
+#else
 	register const uint32 *	p = (const uint32 *) pKey;
 	register unsigned		even,
 							odd,
 							n;
+#endif
+
 	n     = *p;
 	even  = g_nRandomValues[n & 0xff];
 	odd   = g_nRandomValues[((n >> 8) & 0xff)];
@@ -181,10 +194,18 @@ unsigned FASTCALL Hash4( const void *pKey )
 //-----------------------------------------------------------------------------
 unsigned FASTCALL Hash8( const void *pKey )
 {
+#if __cplusplus <= 201703L
+	const uint32 *	p = (const uint32 *) pKey;
+	unsigned		even,
+					odd,
+					n;
+#else
 	register const uint32 *	p = (const uint32 *) pKey;
 	register unsigned		even,
 							odd,
 							n;
+#endif
+
 	n     = *p;
 	even  = g_nRandomValues[n & 0xff];
 	odd   = g_nRandomValues[((n >> 8) & 0xff)];
@@ -209,10 +230,18 @@ unsigned FASTCALL Hash8( const void *pKey )
 //-----------------------------------------------------------------------------
 unsigned FASTCALL Hash12( const void *pKey )
 {
+#if __cplusplus <= 201703L
+	const uint32 *	p = (const uint32 *) pKey;
+	unsigned		even,
+					odd,
+					n;
+#else
 	register const uint32 *	p = (const uint32 *) pKey;
 	register unsigned		even,
 							odd,
 							n;
+#endif
+
 	n     = *p;
 	even  = g_nRandomValues[n & 0xff];
 	odd   = g_nRandomValues[((n >> 8) & 0xff)];
@@ -243,10 +272,18 @@ unsigned FASTCALL Hash12( const void *pKey )
 //-----------------------------------------------------------------------------
 unsigned FASTCALL Hash16( const void *pKey )
 {
+#if __cplusplus <= 201703L
+	const uint32 *	p = (const uint32 *) pKey;
+	unsigned		even,
+							odd,
+							n;
+#else
 	register const uint32 *	p = (const uint32 *) pKey;
 	register unsigned		even,
 							odd,
 							n;
+#endif
+
 	n     = *p;
 	even  = g_nRandomValues[n & 0xff];
 	odd   = g_nRandomValues[((n >> 8) & 0xff)];

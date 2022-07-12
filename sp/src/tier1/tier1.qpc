@@ -1,0 +1,161 @@
+//-----------------------------------------------------------------------------
+//	TIER1.QPC
+//-----------------------------------------------------------------------------
+
+macro SRC_DIR		".."
+ 
+include "$SRC_DIR/qpc_scripts/source_lib_base.qpc"
+
+configuration
+{
+	compiler
+	{
+		preprocessor_definitions
+		{
+			"TIER1_STATIC_LIB"
+		}
+	}
+	
+	linker
+	{
+		libraries
+		{
+			"Rpcrt4.lib" [$WINDOWS]
+		}
+	}
+}
+
+files
+{
+	folder	"Source Files"
+	{
+		"bitbuf.cpp"
+		"newbitbuf.cpp"
+		"byteswap.cpp"
+		"characterset.cpp"
+		"checksum_crc.cpp"
+		"checksum_md5.cpp"
+		"checksum_sha1.cpp"
+		"commandbuffer.cpp"
+		"convar.cpp"
+		"datamanager.cpp"
+		"diff.cpp"
+		"generichash.cpp"
+		"ilocalize.cpp"
+		"interface.cpp"
+		"KeyValues.cpp"
+		"kvpacker.cpp"
+		"lzmaDecoder.cpp"
+		"lzss.cpp" [!$SOURCESDK]
+		"mempool.cpp"
+		"memstack.cpp"
+		"NetAdr.cpp"
+		"splitstring.cpp"
+		"math_proxy.cpp" [$POSIX]
+		"processor_detect.cpp" [$WINDOWS||$X360]
+		{
+			configuration
+			{
+				compiler
+				{
+					options
+					{
+						"/EHsc" [!$X360]
+					}
+				}
+			}
+		}
+		
+		"processor_detect_linux.cpp"	[$POSIX]
+		"qsort_s.cpp"	[$LINUXALL||$PS3]
+		"rangecheckedvar.cpp"
+		"reliabletimer.cpp"
+		"stringpool.cpp"
+		"strtools.cpp"
+		"strtools_unicode.cpp"
+		"tier1.cpp"
+		"tokenreader.cpp"
+		"sparsematrix.cpp"
+		"uniqueid.cpp"
+		"utlbuffer.cpp"
+		"utlbufferutil.cpp"
+		"utlstring.cpp"
+		"utlsymbol.cpp"
+		"pathmatch.cpp" [$LINUXALL]
+		"snappy.cpp"
+		"snappy-sinksource.cpp"
+		"snappy-stubs-internal.cpp"
+	}
+
+	folder	"Header Files"
+	{
+		folder	"Internal Header Files"
+		{
+			"snappy-internal.h"
+			"snappy-stubs-internal.h"
+		}
+		"$SRC_DIR/public/tier1/bitbuf.h"
+		"$SRC_DIR/public/tier1/byteswap.h"
+		"$SRC_DIR/public/tier1/callqueue.h"
+		"$SRC_DIR/public/tier1/characterset.h"
+		"$SRC_DIR/public/tier1/checksum_crc.h"
+		"$SRC_DIR/public/tier1/checksum_md5.h"
+		"$SRC_DIR/public/tier1/checksum_sha1.h"
+		"$SRC_DIR/public/tier1/CommandBuffer.h"
+		"$SRC_DIR/public/tier1/convar.h"
+		"$SRC_DIR/public/tier1/datamanager.h"
+		"$SRC_DIR/public/datamap.h"
+		"$SRC_DIR/public/tier1/delegates.h"
+		"$SRC_DIR/public/tier1/diff.h"
+		"$SRC_DIR/public/tier1/fmtstr.h"
+		"$SRC_DIR/public/tier1/functors.h"
+		"$SRC_DIR/public/tier1/generichash.h"
+		"$SRC_DIR/public/tier1/iconvar.h"
+		"$SRC_DIR/public/tier1/ilocalize.h"
+		"$SRC_DIR/public/tier1/interface.h"
+		"$SRC_DIR/public/tier1/KeyValues.h"
+		"$SRC_DIR/public/tier1/kvpacker.h"
+		"$SRC_DIR/public/tier1/lzmaDecoder.h"
+		"$SRC_DIR/public/tier1/lzss.h"
+		"$SRC_DIR/public/tier1/mempool.h"
+		"$SRC_DIR/public/tier1/memstack.h"
+		"$SRC_DIR/public/tier1/netadr.h"
+		"$SRC_DIR/public/tier1/processor_detect.h"
+		"$SRC_DIR/public/tier1/rangecheckedvar.h"
+		"$SRC_DIR/public/tier1/refcount.h"
+		"$SRC_DIR/public/tier1/smartptr.h"
+		"$SRC_DIR/public/tier1/snappy.h"
+		"$SRC_DIR/public/tier1/snappy-sinksource.h"
+		"$SRC_DIR/public/tier1/stringpool.h"
+		"$SRC_DIR/public/tier1/strtools.h"
+		"$SRC_DIR/public/tier1/tier1.h"
+		"$SRC_DIR/public/tier1/tokenreader.h"
+		"$SRC_DIR/public/tier1/uniqueid.h"				[$WINDOWS]
+		"$SRC_DIR/public/tier1/utlbidirectionalset.h"
+		"$SRC_DIR/public/tier1/utlblockmemory.h"
+		"$SRC_DIR/public/tier1/utlbuffer.h"
+		"$SRC_DIR/public/tier1/utlbufferutil.h"
+		"$SRC_DIR/public/tier1/utlcommon.h"
+		"$SRC_DIR/public/tier1/utldict.h"
+		"$SRC_DIR/public/tier1/utlenvelope.h"
+		"$SRC_DIR/public/tier1/utlfixedmemory.h"
+		"$SRC_DIR/public/tier1/utlhandletable.h"
+		"$SRC_DIR/public/tier1/utlhash.h"
+		"$SRC_DIR/public/tier1/utlhashtable.h"
+		"$SRC_DIR/public/tier1/utllinkedlist.h"
+		"$SRC_DIR/public/tier1/utlmap.h"
+		"$SRC_DIR/public/tier1/utlmemory.h"
+		"$SRC_DIR/public/tier1/utlmultilist.h"
+		"$SRC_DIR/public/tier1/utlpriorityqueue.h"
+		"$SRC_DIR/public/tier1/utlqueue.h"
+		"$SRC_DIR/public/tier1/utlrbtree.h"
+		"$SRC_DIR/public/tier1/UtlSortVector.h"
+		"$SRC_DIR/public/tier1/utlstack.h"
+		"$SRC_DIR/public/tier1/utlstring.h"
+		"$SRC_DIR/public/tier1/UtlStringMap.h"
+		"$SRC_DIR/public/tier1/utlsymbol.h"
+		"$SRC_DIR/public/tier1/utlsymbollarge.h"
+		"$SRC_DIR/public/tier1/utlvector.h"
+		"$SRC_DIR/common/xbox/xboxstubs.h"				[$WINDOWS]
+	}
+}
