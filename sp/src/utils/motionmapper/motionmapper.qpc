@@ -34,6 +34,9 @@ configuration
 		libraries
 		{
 			"winmm.lib"
+			"$LIBPUBLIC/mathlib"
+			"$LIBPUBLIC/nvtristrip"
+			"$LIBPUBLIC/tier2"
 		}
 	}
 }

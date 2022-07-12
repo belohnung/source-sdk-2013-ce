@@ -31,6 +31,16 @@ configuration
 			"_ALLOW_MSC_VER_MISMATCH"
 		}
 	}
+	
+	linker
+	{
+		libraries
+		{
+			"$LIBPUBLIC/bitmap"
+			"$LIBPUBLIC/mathlib"
+			"$LIBPUBLIC/tier2"
+		}
+	}
 }
 
 files

@@ -10,16 +10,6 @@ macro OUT_BIN_NAME	"vvis"
 
 include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
 
-/*$Configuration
-{
-	$Compiler
-	{
-		$AdditionalIncludeDirectories		"$BASE,../common"
-		$Create/UsePrecompiledHeader		"Use Precompiled Header (/Yu)"
-		$PrecompiledHeaderFile				"Debug/vvis_launcher.pch"
-	}
-}*/
-
 configuration
 {
 	general
@@ -32,10 +22,8 @@ configuration
 	
 	compiler
 	{
-		preprocessor_definitions
-		{
-			"PROTECTED_THINGS_DISABLE"
-		}
+		precompiled_header "use"
+		precompiled_header_file "Debug/vvis_launcher.pch"
 	}
 }
 

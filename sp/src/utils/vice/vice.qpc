@@ -18,6 +18,15 @@ configuration
 			"../common"
 		}
 	}
+	
+	linker
+	{
+		libraries
+		{
+			"$LIBPUBLIC/tier2"
+			"$LIBPUBLIC/mathlib"
+		}
+	}
 }
 
 files

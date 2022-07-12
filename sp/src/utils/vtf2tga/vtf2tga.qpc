@@ -9,6 +9,20 @@ macro OUT_BIN_DIR	"$SRC_DIR/../game/bin"
 
 include "$SRC_DIR/qpc_scripts/source_exe_con_base.qpc"
 
+configuration
+{
+	linker
+	{
+		libraries
+		{
+			"$LIBPUBLIC/bitmap"
+			"$LIBPUBLIC/mathlib"
+			"$LIBPUBLIC/tier2"
+			"$LIBPUBLIC/vtf"
+		}
+	}
+}
+
 files
 {
 	folder	"Source Files"

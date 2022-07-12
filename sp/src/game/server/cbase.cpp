@@ -467,7 +467,11 @@ void CBaseEntityOutput::DeleteAllElements( void )
 	m_ActionList = NULL;
 	while (pNext)
 	{
+#if __cplusplus <= 201703L
+		CEventAction *strikeThis = pNext;
+#else
 		register CEventAction *strikeThis = pNext;
+#endif
 		pNext = pNext->m_pNext;
 		delete strikeThis;
 	}

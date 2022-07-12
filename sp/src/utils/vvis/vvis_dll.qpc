@@ -35,6 +35,9 @@ configuration
 		libraries
 		{
 			"odbc32.lib" "odbccp32.lib" "ws2_32.lib"
+			"$LIBPUBLIC/mathlib"
+			"$LIBPUBLIC/tier2"
+			"$LIBPUBLIC/vmpi"
 		}
 	}
 }

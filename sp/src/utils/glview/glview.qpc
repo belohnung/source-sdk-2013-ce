@@ -32,6 +32,8 @@ configuration
 		libraries
 		{
 			"glu32.lib" "opengl32.lib" "odbc32.lib" "odbccp32.lib" "winmm.lib"
+			"$LIBPUBLIC/mathlib.lib"
+			"$LIBPUBLIC/tier2.lib"
 		}
 	}
 }
