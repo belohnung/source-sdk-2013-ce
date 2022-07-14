@@ -7,6 +7,6 @@
 macro PROJECT_NAME "Shaders"
 
 macro SRC_DIR	"../.."
-macro GAMENAME "mod_episodic" [!$GAMENAME]
+macro GAMENAME "mod_sdk2013ce"
 
 include "$SRC_DIR/materialsystem/stdshaders/game_shader_dx9_base.qpc"

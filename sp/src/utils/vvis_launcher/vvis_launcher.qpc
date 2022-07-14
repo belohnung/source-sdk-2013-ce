@@ -23,7 +23,7 @@ configuration
 	compiler
 	{
 		precompiled_header "use"
-		precompiled_header_file "Debug/vvis_launcher.pch"
+		precompiled_header_output_file "Debug/vvis_launcher.pch"
 	}
 }
 

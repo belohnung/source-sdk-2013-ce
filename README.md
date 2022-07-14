@@ -10,15 +10,16 @@ some made by the community, some backported from other engine branches such as A
 
 You can find Source 2013 CE's roadmap by going to our [Trello board](https://trello.com/b/MOxQ2iai/source-sdk-2013-community-edition).
 
-And you can also give us suggestions for fixes and features that you'd like to see in our Discord channel (`#source-SDK-2013-ce`) found in the 
+And you can also give us suggestions for fixes and features that you'd like to see in our Discord channel (`#source-sdk-2013-ce`) found in the 
 Source Modding Community server, which you can join [here](https://discord.gg/BD6WpY5).
 
 # Requirements 
 To be able to use Source 2013 CE you will need to download:
-* Visual Studio 2019
-* Multibyte MFC Library for Visual Studio 2019
+* Visual Studio 2022
+* Multibyte MFC Library for Visual Studio 2022
 * Windows SDK 10.0.22000.0
-* Python and lxml
+* Python
+* lxml library for Python
 
 # Contributing
 We appreciate any form of help so ideally if you want to help this project out the best way would be to make a pull request.

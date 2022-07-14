@@ -15,7 +15,7 @@ configuration
 {
 	general
 	{
-		out_dir "$QPC_CONFIG_dx9_"
+		out_dir "$CONFIG_dx9_"
 		
 		include_directories
 		{

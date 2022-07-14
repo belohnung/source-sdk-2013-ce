@@ -13,16 +13,14 @@ configuration
 	{
 		preprocessor_definitions
 		{
-			"COMPILER_MSVC32" [$WIN32]
+			"WIN64" "_WIN64" "COMPILER_MSVC64" [$WIN64]
+			"WIN32" "_WIN32" "COMPILER_MSVC32" [$WIN32]
 			
 			"COMPILER_MSVC"
 			
-			"WIN32"
-			"_WIN32"
 			"_WINDOWS"
 			
-			"_CRT_SECURE_NO_DEPRECATE"
-			"_CRT_NONSTDC_NO_DEPRECATE"
+			"_CRT_SECURE_NO_DEPRECATE" "_CRT_NONSTDC_NO_DEPRECATE"
 			
 			"_ALLOW_RUNTIME_LIBRARY_MISMATCH"
 			"_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH"
@@ -33,11 +31,14 @@ configuration
 		
 		options
 		{
-			"/WX" [!$ANALYZE]
 			"/arch:SSE" [$WIN32]
+			
 			"/ZI" [$WIN32 && $DEBUG]
+			
+			"/RTC1" [$WIN64 && $DEBUG]
+			
 			"/Od" "/MTd" [$DEBUG]
-			"/O2" "/Ob2" "/Oi" "/Ot" "/MT" "/Gy" [$RELEASE]
+			"/O2" "/Ob2" "/Oi" "/Ot" "/MT" "/Gy" "/Zi" [$RELEASE]
 			"/GF"
 			"/fp:fast"
 			"/Zc:forScope"
@@ -46,13 +47,21 @@ configuration
 			"/errorReport:prompt"
 			"/Gw"
 			"/Zc:inline"
-			"/ignore:4221"
 			"/ignore:4316"
 			"/ignore:4838"
 			"/ignore:4456"
 			"/ignore:4457"
 			"/ignore:4458"
 			"/ignore:4459"
+		}
+	}
+	
+	linker
+	{
+		options
+		{
+			"/MACHINE:X64" [$WIN64]
+			"/ignore:4221" "/NOLOGO"
 		}
 	}
 }

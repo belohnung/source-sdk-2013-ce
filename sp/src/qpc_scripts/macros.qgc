@@ -5,17 +5,24 @@
 macro SRC_DIR  [!$SRC_DIR]
 macro GAMENAME [!$GAMENAME]
 
-macro WIN32	            "1"			[$WINDOWS && $I386]
+macro WIN32	            "1"				[$WINDOWS && $I386]
+macro WIN64	            "1"        		[$WINDOWS && $AMD64]
 
-macro LINUX32	        "1"			[$LINUX && $I386]
+macro LINUX32	        "1"				[$LINUX && $I386]
+macro LINUX64	        "1"        		[$LINUX && $AMD64]
+
+
+macro 32BITS	        "1"        		[$I386]
+macro 64BITS	        "1"        		[$AMD64]
 
 macro PLATSUBDIR        "/win32"		[$WIN32]
+macro PLATSUBDIR        "/win64"		[$WIN64]
 macro PLATSUBDIR        "/linux32"		[$LINUX32]
 macro PLATSUBDIR        "/osx32"		[$OSX32]
 
-macro OUT_BIN_NAME "$PROJECT_SCRIPT_NAME"	[!$OUT_BIN_NAME]
+macro OUT_BIN_NAME 		"$PROJECT_SCRIPT_NAME"	[!$OUT_BIN_NAME]
 
-macro LIBPUBLIC "$SRC_DIR/lib/public$PLATSUBDIR"
-macro LIBCOMMON "$SRC_DIR/lib/common$PLATSUBDIR"
+macro LIBPUBLIC 		"$SRC_DIR/lib/public$PLATSUBDIR"
+macro LIBCOMMON 		"$SRC_DIR/lib/common$PLATSUBDIR"
 
 macro BUILD_DIR         "$CONFIG/$GAMENAME$PLATSUBDIR"	[!$BUILD_DIR]
